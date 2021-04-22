@@ -1,0 +1,9 @@
+{
+	"name": "playgroundIVT",
+	"location": "westeurope",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "a3fd23e5-c678-4f8f-962a-a0cef35fcff2",
+		"tenantId": "c01c5f96-f5eb-4dc6-b39f-9807ff40a466"
+	}
+}

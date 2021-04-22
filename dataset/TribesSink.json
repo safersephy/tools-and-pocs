@@ -1,0 +1,22 @@
+{
+	"name": "TribesSink",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureSqlDatabase1",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "ContractOmschrijving",
+				"type": "nvarchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "Tribes"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}
