@@ -1,0 +1,28 @@
+{
+	"name": "DataVerseTribes",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "DataverseDemo",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"URL": {
+				"type": "string",
+				"defaultValue": "api/data/v9.2/cr83c_tribeses?$deltatoken="
+			}
+		},
+		"folder": {
+			"name": "Dataverse"
+		},
+		"annotations": [],
+		"type": "RestResource",
+		"typeProperties": {
+			"relativeUrl": {
+				"value": "@dataset().URL",
+				"type": "Expression"
+			}
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

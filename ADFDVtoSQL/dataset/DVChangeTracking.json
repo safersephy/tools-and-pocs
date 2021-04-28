@@ -1,0 +1,26 @@
+{
+	"name": "DVChangeTracking",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "SQLSIENNBI",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "Deltalink",
+				"type": "nvarchar"
+			},
+			{
+				"name": "TableName",
+				"type": "nvarchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "DVChangeTracking"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

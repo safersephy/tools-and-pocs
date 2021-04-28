@@ -1,0 +1,12 @@
+{
+	"name": "SQLSIENNBI",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureSqlDatabase",
+		"typeProperties": {
+			"connectionString": "integrated security=False;encrypt=True;connection timeout=30;data source=siennproman.database.windows.net;initial catalog=SQLImport;user id=SaferSephy",
+			"encryptedCredential": "ew0KICAiVmVyc2lvbiI6ICIyMDE3LTExLTMwIiwNCiAgIlByb3RlY3Rpb25Nb2RlIjogIktleSIsDQogICJTZWNyZXRDb250ZW50VHlwZSI6ICJQbGFpbnRleHQiLA0KICAiQ3JlZGVudGlhbElkIjogIkRFTU9TSUVOTl83ODViZTcyMC0wZjAxLTRlYzItYTE2Ny1iMzFkZTAyZTY3NDAiDQp9"
+		}
+	}
+}

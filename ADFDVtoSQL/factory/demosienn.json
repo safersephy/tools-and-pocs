@@ -1,0 +1,9 @@
+{
+	"name": "demosienn",
+	"location": "westeurope",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "3f427f48-ccc8-4a33-82d9-7282d92ddd21",
+		"tenantId": "c01c5f96-f5eb-4dc6-b39f-9807ff40a466"
+	}
+}

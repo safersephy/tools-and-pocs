@@ -1,0 +1,210 @@
+{
+	"name": "dataflow1",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "tmpSQLEmployees",
+						"type": "DatasetReference"
+					},
+					"name": "tmpEmployees"
+				},
+				{
+					"dataset": {
+						"referenceName": "tmpSQLContracts",
+						"type": "DatasetReference"
+					},
+					"name": "tmpContracts"
+				},
+				{
+					"dataset": {
+						"referenceName": "tmpSQLCustomers",
+						"type": "DatasetReference"
+					},
+					"name": "tmpCustomers"
+				},
+				{
+					"dataset": {
+						"referenceName": "tmpSQLCustomerSquad",
+						"type": "DatasetReference"
+					},
+					"name": "tmpCustomerSquad"
+				},
+				{
+					"dataset": {
+						"referenceName": "tmpSQLInvoices",
+						"type": "DatasetReference"
+					},
+					"name": "tmpInvoices"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "sinkSQLEmployees",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				},
+				{
+					"dataset": {
+						"referenceName": "sinkSQLContracts",
+						"type": "DatasetReference"
+					},
+					"name": "sink2"
+				},
+				{
+					"dataset": {
+						"referenceName": "sinkSQLCustomers",
+						"type": "DatasetReference"
+					},
+					"name": "sink3"
+				},
+				{
+					"dataset": {
+						"referenceName": "sinkSQLCustomerSquad",
+						"type": "DatasetReference"
+					},
+					"name": "sink4"
+				},
+				{
+					"dataset": {
+						"referenceName": "sinkSQLInvoices",
+						"type": "DatasetReference"
+					},
+					"name": "sink5"
+				},
+				{
+					"dataset": {
+						"referenceName": "DVChangeTracking",
+						"type": "DatasetReference"
+					},
+					"name": "EmployeeDeltalink"
+				},
+				{
+					"dataset": {
+						"referenceName": "DVChangeTracking",
+						"type": "DatasetReference"
+					},
+					"name": "sink6"
+				},
+				{
+					"dataset": {
+						"referenceName": "DVChangeTracking",
+						"type": "DatasetReference"
+					},
+					"name": "sink7"
+				},
+				{
+					"dataset": {
+						"referenceName": "DVChangeTracking",
+						"type": "DatasetReference"
+					},
+					"name": "sink8"
+				},
+				{
+					"dataset": {
+						"referenceName": "DVChangeTracking",
+						"type": "DatasetReference"
+					},
+					"name": "sink9"
+				}
+			],
+			"transformations": [
+				{
+					"name": "UpsertEmployees"
+				},
+				{
+					"name": "UpsertContracts"
+				},
+				{
+					"name": "UpsertCustomers"
+				},
+				{
+					"name": "UpsertCustomerSquad"
+				},
+				{
+					"name": "UpsertInvoices"
+				},
+				{
+					"name": "FilterRowswithDeltalink"
+				},
+				{
+					"name": "AlterRow1"
+				},
+				{
+					"name": "SelectDeltalinkColumn"
+				},
+				{
+					"name": "AddTableNameColumn"
+				},
+				{
+					"name": "Deduplicate"
+				},
+				{
+					"name": "Filter1"
+				},
+				{
+					"name": "Select1"
+				},
+				{
+					"name": "Aggregate1"
+				},
+				{
+					"name": "DerivedColumn1"
+				},
+				{
+					"name": "AlterRow2"
+				},
+				{
+					"name": "Filter2"
+				},
+				{
+					"name": "Select2"
+				},
+				{
+					"name": "Aggregate2"
+				},
+				{
+					"name": "DerivedColumn2"
+				},
+				{
+					"name": "AlterRow3"
+				},
+				{
+					"name": "Filter3"
+				},
+				{
+					"name": "Select3"
+				},
+				{
+					"name": "Aggregate3"
+				},
+				{
+					"name": "DerivedColumn3"
+				},
+				{
+					"name": "AlterRow4"
+				},
+				{
+					"name": "Filter4"
+				},
+				{
+					"name": "Select4"
+				},
+				{
+					"name": "Aggregate4"
+				},
+				{
+					"name": "DerivedColumn4"
+				},
+				{
+					"name": "AlterRow5"
+				}
+			],
+			"script": "source(output(\n\t\tName as string,\n\t\tDeltalink as string,\n\t\tId as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> tmpEmployees\nsource(output(\n\t\tName as string,\n\t\tId as string,\n\t\tDeltalink as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> tmpContracts\nsource(output(\n\t\tName as string,\n\t\tId as string,\n\t\tDeltalink as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> tmpCustomers\nsource(output(\n\t\tName as string,\n\t\tId as string,\n\t\tDeltalink as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> tmpCustomerSquad\nsource(output(\n\t\tName as string,\n\t\tId as string,\n\t\tDeltalink as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> tmpInvoices\ntmpEmployees alterRow(upsertIf(isNull(Id)==false())) ~> UpsertEmployees\ntmpContracts alterRow(upsertIf(isNull(Id)==false())) ~> UpsertContracts\ntmpCustomers alterRow(upsertIf(isNull(Id)==false())) ~> UpsertCustomers\ntmpCustomerSquad alterRow(upsertIf(isNull(Id)==false())) ~> UpsertCustomerSquad\ntmpInvoices alterRow(upsertIf(isNull(Id)==false())) ~> UpsertInvoices\ntmpEmployees filter(isNull(Deltalink)==false()) ~> FilterRowswithDeltalink\nAddTableNameColumn alterRow(updateIf(isNull(Deltalink)==false())) ~> AlterRow1\nFilterRowswithDeltalink select(mapColumn(\n\t\tDeltalink\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SelectDeltalinkColumn\nDeduplicate derive(TableName = 'cr83c_employeeses',\n\t\tDeltalink = replace(Deltalink, 'https://siennivt.crm4.dynamics.com/', '' )) ~> AddTableNameColumn\nSelectDeltalinkColumn aggregate(groupBy(Deltalink),\n\teach(match(!in(['Deltalink'],name)), $$ = first($$))) ~> Deduplicate\ntmpContracts filter(isNull(Deltalink)==false()) ~> Filter1\nFilter1 select(mapColumn(\n\t\tDeltalink\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> Select1\nSelect1 aggregate(groupBy(Deltalink),\n\teach(match(!in(['Deltalink'],name)), $$ = first($$))) ~> Aggregate1\nAggregate1 derive(TableName = 'cr83c_contractses',\n\t\tDeltalink = replace(Deltalink, 'https://siennivt.crm4.dynamics.com/', '' )) ~> DerivedColumn1\nDerivedColumn1 alterRow(updateIf(isNull(Deltalink)==false())) ~> AlterRow2\ntmpCustomers filter(isNull(Deltalink)==false()) ~> Filter2\nFilter2 select(mapColumn(\n\t\tDeltalink\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> Select2\nSelect2 aggregate(groupBy(Deltalink),\n\teach(match(!in(['Deltalink'],name)), $$ = first($$))) ~> Aggregate2\nAggregate2 derive(TableName = 'cr83c_customerses',\n\t\tDeltalink = replace(Deltalink, 'https://siennivt.crm4.dynamics.com/', '' )) ~> DerivedColumn2\nDerivedColumn2 alterRow(updateIf(isNull(Deltalink)==false())) ~> AlterRow3\ntmpCustomerSquad filter(isNull(Deltalink)==false()) ~> Filter3\nFilter3 select(mapColumn(\n\t\tDeltalink\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> Select3\nSelect3 aggregate(groupBy(Deltalink),\n\teach(match(!in(['Deltalink'],name)), $$ = first($$))) ~> Aggregate3\nAggregate3 derive(TableName = 'cr83c_customersquads',\n\t\tDeltalink = replace(Deltalink, 'https://siennivt.crm4.dynamics.com/', '' )) ~> DerivedColumn3\nDerivedColumn3 alterRow(updateIf(isNull(Deltalink)==false())) ~> AlterRow4\ntmpInvoices filter(isNull(Deltalink)==false()) ~> Filter4\nFilter4 select(mapColumn(\n\t\tDeltalink\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> Select4\nSelect4 aggregate(groupBy(Deltalink),\n\teach(match(!in(['Deltalink'],name)), $$ = first($$))) ~> Aggregate4\nAggregate4 derive(TableName = 'cr83c_invoiceses',\n\t\tDeltalink = replace(Deltalink, 'https://siennivt.crm4.dynamics.com/', '' )) ~> DerivedColumn4\nDerivedColumn4 alterRow(updateIf(isNull(Deltalink)==false())) ~> AlterRow5\nUpsertEmployees sink(input(\n\t\tName as string,\n\t\tId as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:false,\n\tupdateable:false,\n\tupsertable:true,\n\tkeys:['Id'],\n\tformat: 'table',\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> sink1\nUpsertContracts sink(input(\n\t\tName as string,\n\t\tId as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:false,\n\tupdateable:false,\n\tupsertable:true,\n\tkeys:['Id'],\n\tformat: 'table',\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> sink2\nUpsertCustomers sink(input(\n\t\tName as string,\n\t\tId as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:false,\n\tupdateable:false,\n\tupsertable:true,\n\tkeys:['Id'],\n\tformat: 'table',\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> sink3\nUpsertCustomerSquad sink(input(\n\t\tName as string,\n\t\tId as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:false,\n\tupdateable:false,\n\tupsertable:true,\n\tkeys:['Id'],\n\tformat: 'table',\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> sink4\nUpsertInvoices sink(input(\n\t\tName as string,\n\t\tId as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:false,\n\tupdateable:false,\n\tupsertable:true,\n\tkeys:['Id'],\n\tformat: 'table',\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> sink5\nAlterRow1 sink(input(\n\t\tDeltalink as string,\n\t\tTableName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:false,\n\tupdateable:true,\n\tupsertable:false,\n\tkeys:['TableName'],\n\tskipKeyWrites:true,\n\tformat: 'table',\n\tmapColumn(\n\t\tDeltalink,\n\t\tTableName\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> EmployeeDeltalink\nAlterRow2 sink(input(\n\t\tDeltalink as string,\n\t\tTableName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:false,\n\tupdateable:true,\n\tupsertable:false,\n\tkeys:['TableName'],\n\tskipKeyWrites:true,\n\tformat: 'table',\n\tmapColumn(\n\t\tDeltalink,\n\t\tTableName\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> sink6\nAlterRow3 sink(input(\n\t\tDeltalink as string,\n\t\tTableName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:false,\n\tupdateable:true,\n\tupsertable:false,\n\tkeys:['TableName'],\n\tskipKeyWrites:true,\n\tformat: 'table',\n\tmapColumn(\n\t\tDeltalink,\n\t\tTableName\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> sink7\nAlterRow4 sink(input(\n\t\tDeltalink as string,\n\t\tTableName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:false,\n\tupdateable:true,\n\tupsertable:false,\n\tkeys:['TableName'],\n\tskipKeyWrites:true,\n\tformat: 'table',\n\tmapColumn(\n\t\tDeltalink,\n\t\tTableName\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> sink8\nAlterRow5 sink(input(\n\t\tDeltalink as string,\n\t\tTableName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:false,\n\tupdateable:true,\n\tupsertable:false,\n\tkeys:['TableName'],\n\tskipKeyWrites:true,\n\tformat: 'table',\n\tmapColumn(\n\t\tDeltalink,\n\t\tTableName\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> sink9"
+		}
+	}
+}
