@@ -1,0 +1,166 @@
+{
+	"name": "OLD DELETE LOGIC",
+	"properties": {
+		"activities": [
+			{
+				"name": "Delete until table is empty",
+				"type": "Until",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@empty(activity('GetAllRecordIds').output)",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "GetAllRecordIds",
+							"type": "WebActivity",
+							"dependsOn": [
+								{
+									"activity": "GetD365AccessToken",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"url": "https://siennivt.crm4.dynamics.com/api/data/v9.2/cr83c_sqlemployees?$select=cr83c_sqlemployeeid",
+								"method": "GET",
+								"headers": {
+									"Authorization": {
+										"value": "Bearer @{activity('GetD365AccessToken').output.access_token}",
+										"type": "Expression"
+									},
+									"Prefer": {
+										"value": "odata.maxpagesize=500",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "ComposeDeleteAllCall",
+							"type": "AzureFunctionActivity",
+							"dependsOn": [
+								{
+									"activity": "GetAllRecordIds",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"functionName": "ComposeDeleteAll",
+								"method": "POST",
+								"body": {
+									"value": "@activity('GetAllRecordIds').output",
+									"type": "Expression"
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "Compose Delete all",
+								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "DeleteAllRecords",
+							"type": "WebActivity",
+							"dependsOn": [
+								{
+									"activity": "ComposeDeleteAllCall",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"url": "https://siennivt.crm4.dynamics.com/api/data/v9.2/$batch",
+								"method": "POST",
+								"headers": {
+									"Authorization": {
+										"value": "Bearer @{activity('GetD365AccessToken').output.access_token}",
+										"type": "Expression"
+									},
+									"Content-Type": "multipart/mixed;boundary=batch_123456",
+									"Accept": "application/json",
+									"Odata-MaxVersion": "4.0",
+									"Odata-Version": "4.0"
+								},
+								"body": {
+									"value": "@activity('ComposeDeleteAllCall').output.value",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "GetD365AccessToken",
+							"type": "WebActivity",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"url": {
+									"value": "@concat('https://login.microsoftonline.com/', variables('TenantID'), '/oauth2/token')",
+									"type": "Expression"
+								},
+								"method": "POST",
+								"headers": {
+									"Content-Type": "application/x-www-form-urlencoded"
+								},
+								"body": {
+									"value": "@variables('AuthRequestBody')",
+									"type": "Expression"
+								}
+							}
+						}
+					],
+					"timeout": "7.00:00:00"
+				}
+			}
+		],
+		"variables": {
+			"TenantId": {
+				"type": "String",
+				"defaultValue": "d9e6a08b-33cf-4b9b-ad69-00accc74df0c"
+			},
+			"AuthRequestBody": {
+				"type": "String",
+				"defaultValue": "client_id=353fa32d-a5d9-48f7-a5b7-6a8f69108e3f&grant_type=client_credentials&redirect_uri=https%3A%2F%2Fadf.azure.com%2F&resource=https%3A%2F%2Fsiennivt.crm4.dynamics.com%2F&client_secret=e5sY145YJ0ga7.y4Ysk~-_JMjzX_d08UkZ"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-05-03T11:40:35Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

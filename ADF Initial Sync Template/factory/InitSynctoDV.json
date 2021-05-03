@@ -1,0 +1,9 @@
+{
+	"name": "InitSynctoDV",
+	"location": "westeurope",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "80463ee2-d284-4a59-a2b3-44d1ef6bb3f9",
+		"tenantId": "c01c5f96-f5eb-4dc6-b39f-9807ff40a466"
+	}
+}

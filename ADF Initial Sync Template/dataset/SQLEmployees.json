@@ -1,0 +1,26 @@
+{
+	"name": "SQLEmployees",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "SourceSQL",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "Name",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Id",
+				"type": "nvarchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "sinkEmployees"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}
