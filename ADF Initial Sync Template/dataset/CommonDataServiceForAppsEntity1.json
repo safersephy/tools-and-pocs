@@ -5,11 +5,20 @@
 			"referenceName": "CommonDataServiceForApps1",
 			"type": "LinkedServiceReference"
 		},
+		"parameters": {
+			"TableNameSingular": {
+				"type": "string",
+				"defaultValue": "cr83c_sqlemployee"
+			}
+		},
 		"annotations": [],
 		"type": "CommonDataServiceForAppsEntity",
 		"schema": [],
 		"typeProperties": {
-			"entityName": "cr83c_sqlemployee"
+			"entityName": {
+				"value": "@dataset().TableNameSingular",
+				"type": "Expression"
+			}
 		}
 	},
 	"type": "Microsoft.DataFactory/factories/datasets"

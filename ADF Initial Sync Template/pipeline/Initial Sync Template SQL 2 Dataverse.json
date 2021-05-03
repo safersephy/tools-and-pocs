@@ -74,7 +74,13 @@
 				"outputs": [
 					{
 						"referenceName": "CommonDataServiceForAppsEntity1",
-						"type": "DatasetReference"
+						"type": "DatasetReference",
+						"parameters": {
+							"TableNameSingular": {
+								"value": "@variables('TablenameSingular')",
+								"type": "Expression"
+							}
+						}
 					}
 				]
 			},
@@ -125,7 +131,10 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"url": "https://siennivt.crm4.dynamics.com/api/data/v9.2/BulkDelete",
+					"url": {
+						"value": "@{variables('Dataverse Environment')}api/data/v9.2/BulkDelete",
+						"type": "Expression"
+					},
 					"method": "POST",
 					"headers": {
 						"Authorization": {
@@ -134,7 +143,7 @@
 						}
 					},
 					"body": {
-						"value": "{\"JobName\":\"ADF Delete\",\"SendEmailNotification\":false,\"RecurrencePattern\":\"\",\"StartDateTime\":\"\",\"ToRecipients\":[],\"CCRecipients\":[],\"QuerySet\":[{\"EntityName\":\"cr83c_sqlemployee\"}]}",
+						"value": "{\"JobName\":\"ADF Delete\",\"SendEmailNotification\":false,\"RecurrencePattern\":\"\",\"StartDateTime\":\"\",\"ToRecipients\":[],\"CCRecipients\":[],\"QuerySet\":[{\"EntityName\":\"@{variables('TablenameSingular')}\"}]}",
 						"type": "Expression"
 					}
 				}
@@ -208,7 +217,7 @@
 							"userProperties": [],
 							"typeProperties": {
 								"url": {
-									"value": "https://siennivt.crm4.dynamics.com/api/data/v9.2/bulkdeleteoperations?$filter=_asyncoperationid_value eq '@{variables('DeleteJobId')}'",
+									"value": "@{variables('Dataverse Environment')}api/data/v9.2/bulkdeleteoperations?$filter=_asyncoperationid_value eq '@{variables('DeleteJobId')}'",
 									"type": "Expression"
 								},
 								"method": "GET",
