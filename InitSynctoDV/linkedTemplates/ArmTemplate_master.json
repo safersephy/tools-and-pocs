@@ -1,0 +1,84 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "InitSynctoDV"
+		},
+		"CommonDataServiceForApps1_servicePrincipalCredential": {
+			"type": "secureString",
+			"metadata": "Secure string for 'servicePrincipalCredential' of 'CommonDataServiceForApps1'"
+		},
+		"Compose Delete all_functionKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'functionKey' of 'Compose Delete all'"
+		},
+		"SourceSQL_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'SourceSQL'"
+		},
+		"CommonDataServiceForApps1_properties_typeProperties_servicePrincipalId": {
+			"type": "string",
+			"defaultValue": "353fa32d-a5d9-48f7-a5b7-6a8f69108e3f"
+		},
+		"Compose Delete all_properties_typeProperties_functionAppUrl": {
+			"type": "string",
+			"defaultValue": "https://testfunctionsienn.azurewebsites.net"
+		},
+		"RestService1_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://siennivt.crm4.dynamics.com/"
+		},
+		"containerUri": {
+			"type": "string",
+			"metadata": "URI to storage account containing linked ARM templates"
+		},
+		"containerSasToken": {
+			"type": "string",
+			"metadata": "Sas token to storage account containing linked ARM templates"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "InitSynctoDV_ArmTemplate_0",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2018-02-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_0.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					},
+					"CommonDataServiceForApps1_servicePrincipalCredential": {
+						"value": "[parameters('CommonDataServiceForApps1_servicePrincipalCredential')]"
+					},
+					"Compose Delete all_functionKey": {
+						"value": "[parameters('Compose Delete all_functionKey')]"
+					},
+					"SourceSQL_connectionString": {
+						"value": "[parameters('SourceSQL_connectionString')]"
+					},
+					"CommonDataServiceForApps1_properties_typeProperties_servicePrincipalId": {
+						"value": "[parameters('CommonDataServiceForApps1_properties_typeProperties_servicePrincipalId')]"
+					},
+					"Compose Delete all_properties_typeProperties_functionAppUrl": {
+						"value": "[parameters('Compose Delete all_properties_typeProperties_functionAppUrl')]"
+					},
+					"RestService1_properties_typeProperties_url": {
+						"value": "[parameters('RestService1_properties_typeProperties_url')]"
+					}
+				}
+			},
+			"dependsOn": []
+		}
+	]
+}

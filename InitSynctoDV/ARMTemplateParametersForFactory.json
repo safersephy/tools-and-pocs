@@ -1,0 +1,27 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "InitSynctoDV"
+		},
+		"CommonDataServiceForApps1_servicePrincipalCredential": {
+			"value": ""
+		},
+		"Compose Delete all_functionKey": {
+			"value": ""
+		},
+		"SourceSQL_connectionString": {
+			"value": ""
+		},
+		"CommonDataServiceForApps1_properties_typeProperties_servicePrincipalId": {
+			"value": "353fa32d-a5d9-48f7-a5b7-6a8f69108e3f"
+		},
+		"Compose Delete all_properties_typeProperties_functionAppUrl": {
+			"value": "https://testfunctionsienn.azurewebsites.net"
+		},
+		"RestService1_properties_typeProperties_url": {
+			"value": "https://siennivt.crm4.dynamics.com/"
+		}
+	}
+}

@@ -1,0 +1,655 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "InitSynctoDV"
+		},
+		"CommonDataServiceForApps1_servicePrincipalCredential": {
+			"type": "secureString",
+			"metadata": "Secure string for 'servicePrincipalCredential' of 'CommonDataServiceForApps1'"
+		},
+		"Compose Delete all_functionKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'functionKey' of 'Compose Delete all'"
+		},
+		"SourceSQL_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'SourceSQL'"
+		},
+		"CommonDataServiceForApps1_properties_typeProperties_servicePrincipalId": {
+			"type": "string",
+			"defaultValue": "353fa32d-a5d9-48f7-a5b7-6a8f69108e3f"
+		},
+		"Compose Delete all_properties_typeProperties_functionAppUrl": {
+			"type": "string",
+			"defaultValue": "https://testfunctionsienn.azurewebsites.net"
+		},
+		"RestService1_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://siennivt.crm4.dynamics.com/"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/Initial Sync Template SQL 2 Dataverse')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Initial Sync",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Until Delete Job has run",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "RestSink",
+								"httpRequestTimeout": "00:01:40",
+								"requestInterval": 10,
+								"requestMethod": "POST",
+								"writeBatchSize": 10,
+								"httpCompressionType": "none",
+								"writeBehavior": "upsert",
+								"ignoreNullValues": false,
+								"alternateKeyName": "cr83c_sqlid"
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "Name",
+											"type": "String"
+										},
+										"sink": {
+											"name": "cr83c_name",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "Id",
+											"type": "String"
+										},
+										"sink": {
+											"name": "cr83c_id",
+											"type": "String"
+										}
+									}
+								]
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "SQLTable",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "DataverseTable",
+								"type": "DatasetReference",
+								"parameters": {
+									"TableNameSingular": {
+										"value": "@variables('TablenameSingular')",
+										"type": "Expression"
+									}
+								}
+							}
+						]
+					},
+					{
+						"name": "GetD365AccessToken",
+						"type": "WebActivity",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"url": {
+								"value": "@concat('https://login.microsoftonline.com/', variables('TenantID'), '/oauth2/token')",
+								"type": "Expression"
+							},
+							"method": "POST",
+							"headers": {
+								"Content-Type": "application/x-www-form-urlencoded"
+							},
+							"body": {
+								"value": "@variables('AuthRequestBody')",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Plan Bulkdelete Job",
+						"type": "WebActivity",
+						"dependsOn": [
+							{
+								"activity": "GetD365AccessToken",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"url": {
+								"value": "@{variables('Dataverse Environment')}api/data/v9.2/BulkDelete",
+								"type": "Expression"
+							},
+							"method": "POST",
+							"headers": {
+								"Authorization": {
+									"value": "Bearer @{activity('GetD365AccessToken').output.access_token}",
+									"type": "Expression"
+								}
+							},
+							"body": {
+								"value": "{\"JobName\":\"ADF Delete @{variables('TablenameSingular')}\",\"SendEmailNotification\":false,\"RecurrencePattern\":\"\",\"StartDateTime\":\"\",\"ToRecipients\":[],\"CCRecipients\":[],\"QuerySet\":[{\"EntityName\":\"@{variables('TablenameSingular')}\"}]}",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Set Delete Job Id",
+						"type": "SetVariable",
+						"dependsOn": [
+							{
+								"activity": "Plan Bulkdelete Job",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "DeleteJobId",
+							"value": {
+								"value": "@activity('Plan Bulkdelete Job').output.JobId",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Until Delete Job has run",
+						"description": "Checks if state is 3 (completed) and status 30 (succeeded)",
+						"type": "Until",
+						"dependsOn": [
+							{
+								"activity": "Set Delete Job Id",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"expression": {
+								"value": "@and(equals(variables('JobStatecode'),'3'), \nequals(variables('JobStatuscode'),'30'))",
+								"type": "Expression"
+							},
+							"activities": [
+								{
+									"name": "Wait until Delete Job Complete",
+									"type": "Wait",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"waitTimeInSeconds": 60
+									}
+								},
+								{
+									"name": "Check Job State",
+									"type": "WebActivity",
+									"dependsOn": [
+										{
+											"activity": "Wait until Delete Job Complete",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"url": {
+											"value": "@{variables('Dataverse Environment')}api/data/v9.2/bulkdeleteoperations?$filter=_asyncoperationid_value eq '@{variables('DeleteJobId')}'",
+											"type": "Expression"
+										},
+										"method": "GET",
+										"headers": {
+											"Authorization": {
+												"value": "Bearer @{activity('GetD365AccessToken').output.access_token}",
+												"type": "Expression"
+											}
+										}
+									}
+								},
+								{
+									"name": "Set Statecode",
+									"description": "Value\tLabel\tDefaultStatus\tInvariantName\n0\tReady\t1\tReady\n1\tSuspended\t2\tSuspended\n2\tLocked\t2\tLocked\n3\tCompleted\t2\tCompleted",
+									"type": "SetVariable",
+									"dependsOn": [
+										{
+											"activity": "Check Job State",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "JobStatecode",
+										"value": {
+											"value": "@string(activity('Check Job State').output.value[0].statecode)\n\n",
+											"type": "Expression"
+										}
+									}
+								},
+								{
+									"name": "Set Statuscode",
+									"description": "Value\tLabel\tState\n0\tWaiting For Resources\t0\n10\tWaiting\t1\n11\tRetrying\t1\n12\tPaused\t1\n20\tIn Progress\t2\n21\tPausing\t2\n22\tCanceling\t2\n30\tSucceeded\t3\n31\tFailed\t3\n32\tCanceled\t3",
+									"type": "SetVariable",
+									"dependsOn": [
+										{
+											"activity": "Check Job State",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "JobStatuscode",
+										"value": {
+											"value": "@string(activity('Check Job State').output.value[0].statuscode)\n\n",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"timeout": "7.00:00:00"
+						}
+					}
+				],
+				"variables": {
+					"TenantID": {
+						"type": "String",
+						"defaultValue": "d9e6a08b-33cf-4b9b-ad69-00accc74df0c"
+					},
+					"AuthRequestBody": {
+						"type": "String",
+						"defaultValue": "client_id=353fa32d-a5d9-48f7-a5b7-6a8f69108e3f&grant_type=client_credentials&redirect_uri=https%3A%2F%2Fadf.azure.com%2F&resource=https%3A%2F%2Fsiennivt.crm4.dynamics.com%2F&client_secret=e5sY145YJ0ga7.y4Ysk~-_JMjzX_d08UkZ"
+					},
+					"DeleteJobId": {
+						"type": "String",
+						"defaultValue": "0"
+					},
+					"JobStatecode": {
+						"type": "String",
+						"defaultValue": "0"
+					},
+					"JobStatuscode": {
+						"type": "String",
+						"defaultValue": "0"
+					},
+					"TablenameSingular": {
+						"type": "String",
+						"defaultValue": "cr83c_sqlemployee"
+					},
+					"Dataverse Environment": {
+						"type": "String",
+						"defaultValue": "https://siennivt.crm4.dynamics.com/"
+					}
+				},
+				"annotations": [],
+				"lastPublishTime": "2021-05-03T12:12:28Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/SQLTable')]",
+				"[concat(variables('factoryId'), '/datasets/DataverseTable')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/OLD DELETE LOGIC')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Delete until table is empty",
+						"type": "Until",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"expression": {
+								"value": "@empty(activity('GetAllRecordIds').output)",
+								"type": "Expression"
+							},
+							"activities": [
+								{
+									"name": "GetAllRecordIds",
+									"type": "WebActivity",
+									"dependsOn": [
+										{
+											"activity": "GetD365AccessToken",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"url": "https://siennivt.crm4.dynamics.com/api/data/v9.2/cr83c_sqlemployees?$select=cr83c_sqlemployeeid",
+										"method": "GET",
+										"headers": {
+											"Authorization": {
+												"value": "Bearer @{activity('GetD365AccessToken').output.access_token}",
+												"type": "Expression"
+											},
+											"Prefer": {
+												"value": "odata.maxpagesize=500",
+												"type": "Expression"
+											}
+										}
+									}
+								},
+								{
+									"name": "ComposeDeleteAllCall",
+									"type": "AzureFunctionActivity",
+									"dependsOn": [
+										{
+											"activity": "GetAllRecordIds",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"functionName": "ComposeDeleteAll",
+										"method": "POST",
+										"headers": {},
+										"body": {
+											"value": "@activity('GetAllRecordIds').output",
+											"type": "Expression"
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "Compose Delete all",
+										"type": "LinkedServiceReference"
+									}
+								},
+								{
+									"name": "DeleteAllRecords",
+									"type": "WebActivity",
+									"dependsOn": [
+										{
+											"activity": "ComposeDeleteAllCall",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"url": "https://siennivt.crm4.dynamics.com/api/data/v9.2/$batch",
+										"method": "POST",
+										"headers": {
+											"Authorization": {
+												"value": "Bearer @{activity('GetD365AccessToken').output.access_token}",
+												"type": "Expression"
+											},
+											"Content-Type": "multipart/mixed;boundary=batch_123456",
+											"Accept": "application/json",
+											"Odata-MaxVersion": "4.0",
+											"Odata-Version": "4.0"
+										},
+										"body": {
+											"value": "@activity('ComposeDeleteAllCall').output.value",
+											"type": "Expression"
+										}
+									}
+								},
+								{
+									"name": "GetD365AccessToken",
+									"type": "WebActivity",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"url": {
+											"value": "@concat('https://login.microsoftonline.com/', variables('TenantID'), '/oauth2/token')",
+											"type": "Expression"
+										},
+										"method": "POST",
+										"headers": {
+											"Content-Type": "application/x-www-form-urlencoded"
+										},
+										"body": {
+											"value": "@variables('AuthRequestBody')",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"timeout": "7.00:00:00"
+						}
+					}
+				],
+				"variables": {
+					"TenantId": {
+						"type": "String",
+						"defaultValue": "d9e6a08b-33cf-4b9b-ad69-00accc74df0c"
+					},
+					"AuthRequestBody": {
+						"type": "String",
+						"defaultValue": "client_id=353fa32d-a5d9-48f7-a5b7-6a8f69108e3f&grant_type=client_credentials&redirect_uri=https%3A%2F%2Fadf.azure.com%2F&resource=https%3A%2F%2Fsiennivt.crm4.dynamics.com%2F&client_secret=e5sY145YJ0ga7.y4Ysk~-_JMjzX_d08UkZ"
+					}
+				},
+				"annotations": [],
+				"lastPublishTime": "2021-05-03T11:40:35Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/Compose Delete all')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DataverseTable')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "CommonDataServiceForApps1",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"TableNameSingular": {
+						"type": "string",
+						"defaultValue": "cr83c_sqlemployee"
+					}
+				},
+				"annotations": [],
+				"type": "CommonDataServiceForAppsEntity",
+				"schema": [],
+				"typeProperties": {
+					"entityName": {
+						"value": "@dataset().TableNameSingular",
+						"type": "Expression"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/CommonDataServiceForApps1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SQLTable')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "SourceSQL",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "Name",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Id",
+						"type": "nvarchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "sinkEmployees"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/SourceSQL')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/CommonDataServiceForApps1')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "CommonDataServiceForApps",
+				"typeProperties": {
+					"deploymentType": "Online",
+					"serviceUri": "https://siennivt.crm4.dynamics.com/",
+					"authenticationType": "AADServicePrincipal",
+					"servicePrincipalCredentialType": "ServicePrincipalKey",
+					"servicePrincipalId": "[parameters('CommonDataServiceForApps1_properties_typeProperties_servicePrincipalId')]",
+					"servicePrincipalCredential": {
+						"type": "SecureString",
+						"value": "[parameters('CommonDataServiceForApps1_servicePrincipalCredential')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Compose Delete all')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureFunction",
+				"typeProperties": {
+					"functionAppUrl": "[parameters('Compose Delete all_properties_typeProperties_functionAppUrl')]",
+					"functionKey": {
+						"type": "SecureString",
+						"value": "[parameters('Compose Delete all_functionKey')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/RestService1')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "RestService",
+				"typeProperties": {
+					"url": "[parameters('RestService1_properties_typeProperties_url')]",
+					"enableServerCertificateValidation": true,
+					"authenticationType": "Anonymous"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SourceSQL')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"connectionString": "[parameters('SourceSQL_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		}
+	]
+}
