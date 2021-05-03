@@ -1,5 +1,5 @@
 {
-	"name": "CommonDataServiceForAppsEntity1",
+	"name": "DataverseTable",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "CommonDataServiceForApps1",
