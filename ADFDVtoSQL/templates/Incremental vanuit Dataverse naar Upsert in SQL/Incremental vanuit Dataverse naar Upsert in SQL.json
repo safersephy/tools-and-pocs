@@ -1,0 +1,1454 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name"
+		},
+		"DataverseDemo": {
+			"type": "string"
+		},
+		"SQLSIENNBI": {
+			"type": "string"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/pipeline1')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Dataverse Employees naar SQL Azure",
+						"description": "Voorbeeld van een API naar SQL sync",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "GetD365AccessToken",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "RestSource",
+								"httpRequestTimeout": "00:01:40",
+								"requestInterval": "00.00:00:00.010",
+								"requestMethod": "GET",
+								"additionalHeaders": {
+									"Authorization": {
+										"value": "Bearer @{activity('GetD365AccessToken').output.access_token}",
+										"type": "Expression"
+									},
+									"Prefer": {
+										"value": "odata.track-changes",
+										"type": "Expression"
+									}
+								}
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"preCopyScript": "TRUNCATE TABLE dbo.tmpEmployees",
+								"disableMetricsCollection": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"path": "$['@odata.deltaLink']"
+										},
+										"sink": {
+											"name": "Deltalink",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"path": "[['cr83c_name']"
+										},
+										"sink": {
+											"name": "Name",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"path": "[['cr83c_id']"
+										},
+										"sink": {
+											"name": "Id",
+											"type": "String"
+										}
+									}
+								],
+								"collectionReference": "$['value']"
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "DataVerseEmployees",
+								"type": "DatasetReference",
+								"parameters": {
+									"URL": {
+										"value": "@variables('CurrentDeltalinks')[0].Deltalink",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "tmpSQLEmployees",
+								"type": "DatasetReference"
+							}
+						]
+					},
+					{
+						"name": "GetD365AccessToken",
+						"type": "WebActivity",
+						"dependsOn": [
+							{
+								"activity": "Set Current Deltalink Array variable",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"url": {
+								"value": "@concat('https://login.microsoftonline.com/', variables('TenantID'), '/oauth2/token')",
+								"type": "Expression"
+							},
+							"method": "POST",
+							"headers": {
+								"Content-Type": "application/x-www-form-urlencoded"
+							},
+							"body": {
+								"value": "@variables('AuthRequestBody')",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Upsert naar Sink",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "Dataverse Employees naar SQL Azure",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							},
+							{
+								"activity": "Dataverse Contracts naar SQL Azure",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							},
+							{
+								"activity": "Dataverse Customers naar SQL Azure",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							},
+							{
+								"activity": "Dataverse CustomerSquad naar SQL Azure",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							},
+							{
+								"activity": "Dataverse Invoices naar SQL Azure",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "dataflow1",
+								"type": "DataFlowReference"
+							},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "Dataverse Contracts naar SQL Azure",
+						"description": "Voorbeeld van een API naar SQL sync",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "GetD365AccessToken",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "RestSource",
+								"httpRequestTimeout": "00:01:40",
+								"requestInterval": "00.00:00:00.010",
+								"requestMethod": "GET",
+								"additionalHeaders": {
+									"Authorization": {
+										"value": "Bearer @{activity('GetD365AccessToken').output.access_token}",
+										"type": "Expression"
+									},
+									"Prefer": {
+										"value": "odata.track-changes",
+										"type": "Expression"
+									}
+								}
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"preCopyScript": "TRUNCATE TABLE dbo.tmpContracts",
+								"disableMetricsCollection": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"path": "[['cr83c_contractsid']"
+										},
+										"sink": {
+											"name": "Name",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"path": "[['cr83c_id']"
+										},
+										"sink": {
+											"name": "Id",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"path": "$['@odata.deltaLink']"
+										},
+										"sink": {
+											"name": "Deltalink",
+											"type": "String"
+										}
+									}
+								],
+								"collectionReference": "$['value']"
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "DataVerseContracts",
+								"type": "DatasetReference",
+								"parameters": {
+									"URL": {
+										"value": "@variables('CurrentDeltalinks')[1].Deltalink",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "tmpSQLContracts",
+								"type": "DatasetReference"
+							}
+						]
+					},
+					{
+						"name": "Dataverse Customers naar SQL Azure",
+						"description": "Voorbeeld van een API naar SQL sync",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "GetD365AccessToken",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "RestSource",
+								"httpRequestTimeout": "00:01:40",
+								"requestInterval": "00.00:00:00.010",
+								"requestMethod": "GET",
+								"additionalHeaders": {
+									"Authorization": {
+										"value": "Bearer @{activity('GetD365AccessToken').output.access_token}",
+										"type": "Expression"
+									},
+									"Prefer": {
+										"value": "odata.track-changes",
+										"type": "Expression"
+									}
+								}
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"preCopyScript": "TRUNCATE TABLE dbo.tmpCustomers",
+								"disableMetricsCollection": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"path": "[['cr83c_name']"
+										},
+										"sink": {
+											"name": "Name",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"path": "[['cr83c_id']"
+										},
+										"sink": {
+											"name": "Id",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"path": "$['@odata.deltaLink']"
+										},
+										"sink": {
+											"name": "Deltalink",
+											"type": "String"
+										}
+									}
+								],
+								"collectionReference": "$['value']"
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "DataVerseCustomers",
+								"type": "DatasetReference",
+								"parameters": {
+									"URL": {
+										"value": "@variables('CurrentDeltalinks')[2].Deltalink",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "tmpSQLCustomers",
+								"type": "DatasetReference"
+							}
+						]
+					},
+					{
+						"name": "Dataverse CustomerSquad naar SQL Azure",
+						"description": "Voorbeeld van een API naar SQL sync",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "GetD365AccessToken",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "RestSource",
+								"httpRequestTimeout": "00:01:40",
+								"requestInterval": "00.00:00:00.010",
+								"requestMethod": "GET",
+								"additionalHeaders": {
+									"Authorization": {
+										"value": "Bearer @{activity('GetD365AccessToken').output.access_token}",
+										"type": "Expression"
+									},
+									"Prefer": {
+										"value": "odata.track-changes",
+										"type": "Expression"
+									}
+								}
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"preCopyScript": "TRUNCATE TABLE dbo.tmpCustomerSquad",
+								"disableMetricsCollection": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"path": "[['cr83c_id']"
+										},
+										"sink": {
+											"name": "Id",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"path": "[['cr83c_customersquadid']"
+										},
+										"sink": {
+											"name": "Name",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"path": "$['@odata.deltaLink']"
+										},
+										"sink": {
+											"name": "Deltalink",
+											"type": "String"
+										}
+									}
+								],
+								"collectionReference": "$['value']"
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "DataVerseCustomerSquad",
+								"type": "DatasetReference",
+								"parameters": {
+									"URL": {
+										"value": "@variables('CurrentDeltalinks')[3].Deltalink",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "tmpSQLCustomerSquad",
+								"type": "DatasetReference"
+							}
+						]
+					},
+					{
+						"name": "Dataverse Invoices naar SQL Azure",
+						"description": "Voorbeeld van een API naar SQL sync",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "GetD365AccessToken",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "RestSource",
+								"httpRequestTimeout": "00:01:40",
+								"requestInterval": "00.00:00:00.010",
+								"requestMethod": "GET",
+								"additionalHeaders": {
+									"Authorization": {
+										"value": "Bearer @{activity('GetD365AccessToken').output.access_token}",
+										"type": "Expression"
+									},
+									"Prefer": {
+										"value": "odata.track-changes",
+										"type": "Expression"
+									}
+								},
+								"paginationRules": {
+									"AbsoluteUrl": {
+										"value": "$['@odata.nextLink']",
+										"type": "Expression"
+									}
+								}
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"preCopyScript": "TRUNCATE TABLE dbo.tmpInvoices",
+								"disableMetricsCollection": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"path": "[['cr83c_id']"
+										},
+										"sink": {
+											"name": "Id",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"path": "[['cr83c_description']"
+										},
+										"sink": {
+											"name": "Name",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"path": "$['@odata.deltaLink']"
+										},
+										"sink": {
+											"name": "Deltalink",
+											"type": "String"
+										}
+									}
+								],
+								"collectionReference": "$['value']"
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "DataVerseInvoices",
+								"type": "DatasetReference",
+								"parameters": {
+									"URL": {
+										"value": "@variables('CurrentDeltalinks')[4].Deltalink",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "tmpSQLInvoices",
+								"type": "DatasetReference"
+							}
+						]
+					},
+					{
+						"name": "DeltaLinksArray",
+						"description": "0: Employees\n1: Contracts\n2: Customers\n3: CustomerSquads\n4: Invoices\n",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": {
+									"value": "SELECT Deltalink, TableName FROM DVChangeTracking ORDER By Id",
+									"type": "Expression"
+								},
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "DVChangeTracking",
+								"type": "DatasetReference"
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "Set Current Deltalink Array variable",
+						"type": "SetVariable",
+						"dependsOn": [
+							{
+								"activity": "DeltaLinksArray",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "CurrentDeltalinks",
+							"value": {
+								"value": "@activity('DeltaLinksArray').output.value",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"variables": {
+					"TenantID": {
+						"type": "String",
+						"defaultValue": "d9e6a08b-33cf-4b9b-ad69-00accc74df0c"
+					},
+					"AuthRequestBody": {
+						"type": "String",
+						"defaultValue": "client_id=353fa32d-a5d9-48f7-a5b7-6a8f69108e3f&grant_type=client_credentials&redirect_uri=https%3A%2F%2Fadf.azure.com%2F&resource=https%3A%2F%2Fsiennivt.crm4.dynamics.com%2F&client_secret=e5sY145YJ0ga7.y4Ysk~-_JMjzX_d08UkZ"
+					},
+					"D365URL": {
+						"type": "String",
+						"defaultValue": "https://siennivt.crm4.dynamics.com/"
+					},
+					"EmployeesCurrentDeltalink": {
+						"type": "String"
+					},
+					"EmployeesNewDeltalink": {
+						"type": "String"
+					},
+					"ContractsCurrentDeltalink": {
+						"type": "String"
+					},
+					"ContractsNewDeltalink": {
+						"type": "String"
+					},
+					"CustomersCurrentDeltalink": {
+						"type": "String"
+					},
+					"CustomersNewDeltalink": {
+						"type": "String"
+					},
+					"CustomerSquadCurrentDeltalink": {
+						"type": "String"
+					},
+					"CustomerSquadNewDeltalink": {
+						"type": "String"
+					},
+					"InvoicesCurrentDeltalink": {
+						"type": "String"
+					},
+					"InvoicesNewDeltalink": {
+						"type": "String"
+					},
+					"CurrentDeltalinks": {
+						"type": "Array"
+					},
+					"TestSingle": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"lastPublishTime": "2021-04-28T08:50:09Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/DataVerseEmployees')]",
+				"[concat(variables('factoryId'), '/datasets/tmpSQLEmployees')]",
+				"[concat(variables('factoryId'), '/dataflows/dataflow1')]",
+				"[concat(variables('factoryId'), '/datasets/DataVerseContracts')]",
+				"[concat(variables('factoryId'), '/datasets/tmpSQLContracts')]",
+				"[concat(variables('factoryId'), '/datasets/DataVerseCustomers')]",
+				"[concat(variables('factoryId'), '/datasets/tmpSQLCustomers')]",
+				"[concat(variables('factoryId'), '/datasets/DataVerseCustomerSquad')]",
+				"[concat(variables('factoryId'), '/datasets/tmpSQLCustomerSquad')]",
+				"[concat(variables('factoryId'), '/datasets/DataVerseInvoices')]",
+				"[concat(variables('factoryId'), '/datasets/tmpSQLInvoices')]",
+				"[concat(variables('factoryId'), '/datasets/DVChangeTracking')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DataVerseEmployees')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "[parameters('DataverseDemo')]",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"URL": {
+						"type": "string",
+						"defaultValue": "api/data/v9.2/cr83c_employeeses?$deltatoken="
+					}
+				},
+				"folder": {
+					"name": "Dataverse"
+				},
+				"annotations": [],
+				"type": "RestResource",
+				"typeProperties": {
+					"relativeUrl": {
+						"value": "@dataset().URL",
+						"type": "Expression"
+					}
+				},
+				"schema": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/tmpSQLEmployees')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "[parameters('SQLSIENNBI')]",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "tmpSQL"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "Name",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Deltalink",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Id",
+						"type": "nvarchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "tmpEmployees"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/dataflow1')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "tmpSQLEmployees",
+								"type": "DatasetReference"
+							},
+							"name": "tmpEmployees"
+						},
+						{
+							"dataset": {
+								"referenceName": "tmpSQLContracts",
+								"type": "DatasetReference"
+							},
+							"name": "tmpContracts"
+						},
+						{
+							"dataset": {
+								"referenceName": "tmpSQLCustomers",
+								"type": "DatasetReference"
+							},
+							"name": "tmpCustomers"
+						},
+						{
+							"dataset": {
+								"referenceName": "tmpSQLCustomerSquad",
+								"type": "DatasetReference"
+							},
+							"name": "tmpCustomerSquad"
+						},
+						{
+							"dataset": {
+								"referenceName": "tmpSQLInvoices",
+								"type": "DatasetReference"
+							},
+							"name": "tmpInvoices"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "sinkSQLEmployees",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						},
+						{
+							"dataset": {
+								"referenceName": "sinkSQLContracts",
+								"type": "DatasetReference"
+							},
+							"name": "sink2"
+						},
+						{
+							"dataset": {
+								"referenceName": "sinkSQLCustomers",
+								"type": "DatasetReference"
+							},
+							"name": "sink3"
+						},
+						{
+							"dataset": {
+								"referenceName": "sinkSQLCustomerSquad",
+								"type": "DatasetReference"
+							},
+							"name": "sink4"
+						},
+						{
+							"dataset": {
+								"referenceName": "sinkSQLInvoices",
+								"type": "DatasetReference"
+							},
+							"name": "sink5"
+						},
+						{
+							"dataset": {
+								"referenceName": "DVChangeTracking",
+								"type": "DatasetReference"
+							},
+							"name": "EmployeeDeltalink"
+						},
+						{
+							"dataset": {
+								"referenceName": "DVChangeTracking",
+								"type": "DatasetReference"
+							},
+							"name": "sink6"
+						},
+						{
+							"dataset": {
+								"referenceName": "DVChangeTracking",
+								"type": "DatasetReference"
+							},
+							"name": "sink7"
+						},
+						{
+							"dataset": {
+								"referenceName": "DVChangeTracking",
+								"type": "DatasetReference"
+							},
+							"name": "sink8"
+						},
+						{
+							"dataset": {
+								"referenceName": "DVChangeTracking",
+								"type": "DatasetReference"
+							},
+							"name": "sink9"
+						}
+					],
+					"transformations": [
+						{
+							"name": "UpsertEmployees"
+						},
+						{
+							"name": "UpsertContracts"
+						},
+						{
+							"name": "UpsertCustomers"
+						},
+						{
+							"name": "UpsertCustomerSquad"
+						},
+						{
+							"name": "UpsertInvoices"
+						},
+						{
+							"name": "FilterRowswithDeltalink"
+						},
+						{
+							"name": "AlterRow1"
+						},
+						{
+							"name": "SelectDeltalinkColumn"
+						},
+						{
+							"name": "AddTableNameColumn"
+						},
+						{
+							"name": "Deduplicate"
+						},
+						{
+							"name": "Filter1"
+						},
+						{
+							"name": "Select1"
+						},
+						{
+							"name": "Aggregate1"
+						},
+						{
+							"name": "DerivedColumn1"
+						},
+						{
+							"name": "AlterRow2"
+						},
+						{
+							"name": "Filter2"
+						},
+						{
+							"name": "Select2"
+						},
+						{
+							"name": "Aggregate2"
+						},
+						{
+							"name": "DerivedColumn2"
+						},
+						{
+							"name": "AlterRow3"
+						},
+						{
+							"name": "Filter3"
+						},
+						{
+							"name": "Select3"
+						},
+						{
+							"name": "Aggregate3"
+						},
+						{
+							"name": "DerivedColumn3"
+						},
+						{
+							"name": "AlterRow4"
+						},
+						{
+							"name": "Filter4"
+						},
+						{
+							"name": "Select4"
+						},
+						{
+							"name": "Aggregate4"
+						},
+						{
+							"name": "DerivedColumn4"
+						},
+						{
+							"name": "AlterRow5"
+						}
+					],
+					"script": "source(output(\n\t\tName as string,\n\t\tDeltalink as string,\n\t\tId as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> tmpEmployees\nsource(output(\n\t\tName as string,\n\t\tId as string,\n\t\tDeltalink as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> tmpContracts\nsource(output(\n\t\tName as string,\n\t\tId as string,\n\t\tDeltalink as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> tmpCustomers\nsource(output(\n\t\tName as string,\n\t\tId as string,\n\t\tDeltalink as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> tmpCustomerSquad\nsource(output(\n\t\tName as string,\n\t\tId as string,\n\t\tDeltalink as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> tmpInvoices\ntmpEmployees alterRow(upsertIf(isNull(Id)==false())) ~> UpsertEmployees\ntmpContracts alterRow(upsertIf(isNull(Id)==false())) ~> UpsertContracts\ntmpCustomers alterRow(upsertIf(isNull(Id)==false())) ~> UpsertCustomers\ntmpCustomerSquad alterRow(upsertIf(isNull(Id)==false())) ~> UpsertCustomerSquad\ntmpInvoices alterRow(upsertIf(isNull(Id)==false())) ~> UpsertInvoices\ntmpEmployees filter(isNull(Deltalink)==false()) ~> FilterRowswithDeltalink\nAddTableNameColumn alterRow(updateIf(isNull(Deltalink)==false())) ~> AlterRow1\nFilterRowswithDeltalink select(mapColumn(\n\t\tDeltalink\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SelectDeltalinkColumn\nDeduplicate derive(TableName = 'cr83c_employeeses',\n\t\tDeltalink = replace(Deltalink, 'https://siennivt.crm4.dynamics.com/', '' )) ~> AddTableNameColumn\nSelectDeltalinkColumn aggregate(groupBy(Deltalink),\n\teach(match(!in(['Deltalink'],name)), $$ = first($$))) ~> Deduplicate\ntmpContracts filter(isNull(Deltalink)==false()) ~> Filter1\nFilter1 select(mapColumn(\n\t\tDeltalink\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> Select1\nSelect1 aggregate(groupBy(Deltalink),\n\teach(match(!in(['Deltalink'],name)), $$ = first($$))) ~> Aggregate1\nAggregate1 derive(TableName = 'cr83c_contractses',\n\t\tDeltalink = replace(Deltalink, 'https://siennivt.crm4.dynamics.com/', '' )) ~> DerivedColumn1\nDerivedColumn1 alterRow(updateIf(isNull(Deltalink)==false())) ~> AlterRow2\ntmpCustomers filter(isNull(Deltalink)==false()) ~> Filter2\nFilter2 select(mapColumn(\n\t\tDeltalink\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> Select2\nSelect2 aggregate(groupBy(Deltalink),\n\teach(match(!in(['Deltalink'],name)), $$ = first($$))) ~> Aggregate2\nAggregate2 derive(TableName = 'cr83c_customerses',\n\t\tDeltalink = replace(Deltalink, 'https://siennivt.crm4.dynamics.com/', '' )) ~> DerivedColumn2\nDerivedColumn2 alterRow(updateIf(isNull(Deltalink)==false())) ~> AlterRow3\ntmpCustomerSquad filter(isNull(Deltalink)==false()) ~> Filter3\nFilter3 select(mapColumn(\n\t\tDeltalink\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> Select3\nSelect3 aggregate(groupBy(Deltalink),\n\teach(match(!in(['Deltalink'],name)), $$ = first($$))) ~> Aggregate3\nAggregate3 derive(TableName = 'cr83c_customersquads',\n\t\tDeltalink = replace(Deltalink, 'https://siennivt.crm4.dynamics.com/', '' )) ~> DerivedColumn3\nDerivedColumn3 alterRow(updateIf(isNull(Deltalink)==false())) ~> AlterRow4\ntmpInvoices filter(isNull(Deltalink)==false()) ~> Filter4\nFilter4 select(mapColumn(\n\t\tDeltalink\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> Select4\nSelect4 aggregate(groupBy(Deltalink),\n\teach(match(!in(['Deltalink'],name)), $$ = first($$))) ~> Aggregate4\nAggregate4 derive(TableName = 'cr83c_invoiceses',\n\t\tDeltalink = replace(Deltalink, 'https://siennivt.crm4.dynamics.com/', '' )) ~> DerivedColumn4\nDerivedColumn4 alterRow(updateIf(isNull(Deltalink)==false())) ~> AlterRow5\nUpsertEmployees sink(input(\n\t\tName as string,\n\t\tId as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:false,\n\tupdateable:false,\n\tupsertable:true,\n\tkeys:['Id'],\n\tformat: 'table',\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> sink1\nUpsertContracts sink(input(\n\t\tName as string,\n\t\tId as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:false,\n\tupdateable:false,\n\tupsertable:true,\n\tkeys:['Id'],\n\tformat: 'table',\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> sink2\nUpsertCustomers sink(input(\n\t\tName as string,\n\t\tId as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:false,\n\tupdateable:false,\n\tupsertable:true,\n\tkeys:['Id'],\n\tformat: 'table',\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> sink3\nUpsertCustomerSquad sink(input(\n\t\tName as string,\n\t\tId as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:false,\n\tupdateable:false,\n\tupsertable:true,\n\tkeys:['Id'],\n\tformat: 'table',\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> sink4\nUpsertInvoices sink(input(\n\t\tName as string,\n\t\tId as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:false,\n\tupdateable:false,\n\tupsertable:true,\n\tkeys:['Id'],\n\tformat: 'table',\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> sink5\nAlterRow1 sink(input(\n\t\tDeltalink as string,\n\t\tTableName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:false,\n\tupdateable:true,\n\tupsertable:false,\n\tkeys:['TableName'],\n\tskipKeyWrites:true,\n\tformat: 'table',\n\tmapColumn(\n\t\tDeltalink,\n\t\tTableName\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> EmployeeDeltalink\nAlterRow2 sink(input(\n\t\tDeltalink as string,\n\t\tTableName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:false,\n\tupdateable:true,\n\tupsertable:false,\n\tkeys:['TableName'],\n\tskipKeyWrites:true,\n\tformat: 'table',\n\tmapColumn(\n\t\tDeltalink,\n\t\tTableName\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> sink6\nAlterRow3 sink(input(\n\t\tDeltalink as string,\n\t\tTableName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:false,\n\tupdateable:true,\n\tupsertable:false,\n\tkeys:['TableName'],\n\tskipKeyWrites:true,\n\tformat: 'table',\n\tmapColumn(\n\t\tDeltalink,\n\t\tTableName\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> sink7\nAlterRow4 sink(input(\n\t\tDeltalink as string,\n\t\tTableName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:false,\n\tupdateable:true,\n\tupsertable:false,\n\tkeys:['TableName'],\n\tskipKeyWrites:true,\n\tformat: 'table',\n\tmapColumn(\n\t\tDeltalink,\n\t\tTableName\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> sink8\nAlterRow5 sink(input(\n\t\tDeltalink as string,\n\t\tTableName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:false,\n\tupdateable:true,\n\tupsertable:false,\n\tkeys:['TableName'],\n\tskipKeyWrites:true,\n\tformat: 'table',\n\tmapColumn(\n\t\tDeltalink,\n\t\tTableName\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> sink9"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/tmpSQLEmployees')]",
+				"[concat(variables('factoryId'), '/datasets/tmpSQLContracts')]",
+				"[concat(variables('factoryId'), '/datasets/tmpSQLCustomers')]",
+				"[concat(variables('factoryId'), '/datasets/tmpSQLCustomerSquad')]",
+				"[concat(variables('factoryId'), '/datasets/tmpSQLInvoices')]",
+				"[concat(variables('factoryId'), '/datasets/sinkSQLEmployees')]",
+				"[concat(variables('factoryId'), '/datasets/sinkSQLContracts')]",
+				"[concat(variables('factoryId'), '/datasets/sinkSQLCustomers')]",
+				"[concat(variables('factoryId'), '/datasets/sinkSQLCustomerSquad')]",
+				"[concat(variables('factoryId'), '/datasets/sinkSQLInvoices')]",
+				"[concat(variables('factoryId'), '/datasets/DVChangeTracking')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DataVerseContracts')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "[parameters('DataverseDemo')]",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"URL": {
+						"type": "string",
+						"defaultValue": "api/data/v9.2/cr83c_contractses?$deltatoken="
+					}
+				},
+				"folder": {
+					"name": "Dataverse"
+				},
+				"annotations": [],
+				"type": "RestResource",
+				"typeProperties": {
+					"relativeUrl": {
+						"value": "@dataset().URL",
+						"type": "Expression"
+					}
+				},
+				"schema": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/tmpSQLContracts')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "[parameters('SQLSIENNBI')]",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "tmpSQL"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "Name",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Id",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Deltalink",
+						"type": "nvarchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "tmpContracts"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DataVerseCustomers')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "[parameters('DataverseDemo')]",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"URL": {
+						"type": "string",
+						"defaultValue": "api/data/v9.2/cr83c_customerses?$deltatoken="
+					}
+				},
+				"folder": {
+					"name": "Dataverse"
+				},
+				"annotations": [],
+				"type": "RestResource",
+				"typeProperties": {
+					"relativeUrl": {
+						"value": "@dataset().URL",
+						"type": "Expression"
+					}
+				},
+				"schema": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/tmpSQLCustomers')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "[parameters('SQLSIENNBI')]",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "tmpSQL"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "Name",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Id",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Deltalink",
+						"type": "nvarchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "tmpCustomers"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DataVerseCustomerSquad')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "[parameters('DataverseDemo')]",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"URL": {
+						"type": "string",
+						"defaultValue": "api/data/v9.2/cr83c_customersquads?$deltatoken="
+					}
+				},
+				"folder": {
+					"name": "Dataverse"
+				},
+				"annotations": [],
+				"type": "RestResource",
+				"typeProperties": {
+					"relativeUrl": {
+						"value": "@dataset().URL",
+						"type": "Expression"
+					}
+				},
+				"schema": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/tmpSQLCustomerSquad')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "[parameters('SQLSIENNBI')]",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "tmpSQL"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "Name",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Id",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Deltalink",
+						"type": "nvarchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "tmpCustomerSquad"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DataVerseInvoices')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "[parameters('DataverseDemo')]",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"URL": {
+						"type": "string",
+						"defaultValue": "api/data/v9.2/cr83c_invoiceses?$deltatoken="
+					}
+				},
+				"folder": {
+					"name": "Dataverse"
+				},
+				"annotations": [],
+				"type": "RestResource",
+				"typeProperties": {
+					"relativeUrl": {
+						"value": "@dataset().URL",
+						"type": "Expression"
+					}
+				},
+				"schema": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/tmpSQLInvoices')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "[parameters('SQLSIENNBI')]",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "tmpSQL"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "Name",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Id",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Deltalink",
+						"type": "nvarchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "tmpInvoices"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DVChangeTracking')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "[parameters('SQLSIENNBI')]",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "Deltalink",
+						"type": "nvarchar"
+					},
+					{
+						"name": "TableName",
+						"type": "nvarchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "DVChangeTracking"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/sinkSQLEmployees')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "[parameters('SQLSIENNBI')]",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "sinkSQL"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "Name",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Id",
+						"type": "nvarchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "sinkEmployees"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/sinkSQLContracts')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "[parameters('SQLSIENNBI')]",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "sinkSQL"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "Name",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Id",
+						"type": "nvarchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "sinkContracts"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/sinkSQLCustomers')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "[parameters('SQLSIENNBI')]",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "sinkSQL"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "Name",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Id",
+						"type": "nvarchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "sinkCustomers"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/sinkSQLCustomerSquad')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "[parameters('SQLSIENNBI')]",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "sinkSQL"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "Name",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Id",
+						"type": "nvarchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "sinkCustomerSquad"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/sinkSQLInvoices')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "[parameters('SQLSIENNBI')]",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "sinkSQL"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "Name",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Id",
+						"type": "nvarchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "sinkInvoices"
+				}
+			},
+			"dependsOn": []
+		}
+	]
+}
