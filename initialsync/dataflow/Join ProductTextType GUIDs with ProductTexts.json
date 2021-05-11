@@ -19,7 +19,15 @@
 					"name": "SQLProductTexts"
 				}
 			],
-			"sinks": [],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "tmpProductTexts",
+						"type": "DatasetReference"
+					},
+					"name": "SinktmpProductTexts"
+				}
+			],
 			"transformations": [
 				{
 					"name": "FilterProductTextTypeGuids"
@@ -31,7 +39,7 @@
 					"name": "tmpProductTexts"
 				}
 			],
-			"script": "source(output(\n\t\tentity as string,\n\t\textid as integer,\n\t\tdvguid as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: '',\n\tformat: 'query') ~> ProductTextTypeGuids\nsource(output(\n\t\tId as integer,\n\t\tCreateTimeSpan as timestamp,\n\t\tCreateUserId as integer,\n\t\tIsDeleted as boolean,\n\t\tModifyTimeSpan as timestamp,\n\t\tModifyUserId as integer,\n\t\tProductId as integer,\n\t\tProductTextTypeId as integer,\n\t\tDescription as string,\n\t\tRowversion as binary\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> SQLProductTexts\nProductTextTypeGuids filter(entity == 'cr01c_producttexttype') ~> FilterProductTextTypeGuids\nFilterProductTextTypeGuids, SQLProductTexts join(extid == ProductTextTypeId,\n\tjoinType:'right',\n\tbroadcast: 'auto')~> JoinTextTypeGuidstoProductTexts\nJoinTextTypeGuidstoProductTexts select(mapColumn(\n\t\tdvguid,\n\t\tId,\n\t\tCreateTimeSpan,\n\t\tCreateUserId,\n\t\tIsDeleted,\n\t\tModifyTimeSpan,\n\t\tModifyUserId,\n\t\tProductId,\n\t\tProductTextTypeId,\n\t\tDescription\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> tmpProductTexts"
+			"script": "source(output(\n\t\tentity as string,\n\t\textid as integer,\n\t\tdvguid as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> ProductTextTypeGuids\nsource(output(\n\t\tId as integer,\n\t\tCreateTimeSpan as timestamp,\n\t\tCreateUserId as integer,\n\t\tIsDeleted as boolean,\n\t\tModifyTimeSpan as timestamp,\n\t\tModifyUserId as integer,\n\t\tProductId as integer,\n\t\tProductTextTypeId as integer,\n\t\tDescription as string,\n\t\tRowversion as binary\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> SQLProductTexts\nProductTextTypeGuids filter(entity == 'cr01c_producttexttype') ~> FilterProductTextTypeGuids\nFilterProductTextTypeGuids, SQLProductTexts join(extid == ProductTextTypeId,\n\tjoinType:'right',\n\tbroadcast: 'auto')~> JoinTextTypeGuidstoProductTexts\nJoinTextTypeGuidstoProductTexts select(mapColumn(\n\t\tdvguid,\n\t\tId,\n\t\tCreateTimeSpan,\n\t\tCreateUserId,\n\t\tIsDeleted,\n\t\tModifyTimeSpan,\n\t\tModifyUserId,\n\t\tProductId,\n\t\tProductTextTypeId,\n\t\tDescription\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> tmpProductTexts\ntmpProductTexts sink(input(\n\t\tId as integer,\n\t\tCreateTimeSpan as timestamp,\n\t\tCreateUserId as integer,\n\t\tIsDeleted as boolean,\n\t\tModifyTimeSpan as timestamp,\n\t\tModifyUserId as integer,\n\t\tProductId as integer,\n\t\tProductTextTypeId as integer,\n\t\tDescription as string,\n\t\tProductTextTypeIdGUID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\ttruncate:true,\n\tformat: 'table',\n\tmapColumn(\n\t\tId,\n\t\tDescription\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> SinktmpProductTexts"
 		}
 	}
 }
