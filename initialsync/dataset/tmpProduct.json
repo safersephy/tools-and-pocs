@@ -1,0 +1,64 @@
+{
+	"name": "tmpProduct",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "FAKROBLDB",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "Id",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "CreateTimeSpan",
+				"type": "datetime2",
+				"scale": 7
+			},
+			{
+				"name": "CreateUserId",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "IsDeleted",
+				"type": "bit"
+			},
+			{
+				"name": "ModifyTimeSpan",
+				"type": "datetime2",
+				"scale": 7
+			},
+			{
+				"name": "ModifyUserId",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "ProductId",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "ProductTextTypeId",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Description",
+				"type": "nvarchar"
+			},
+			{
+				"name": "ProductTextTypeIdGUID",
+				"type": "uniqueidentifier"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "tmpProducts"
+		}
+	}
+}
