@@ -9,7 +9,7 @@
 		"type": "CommonDataServiceForAppsEntity",
 		"schema": [],
 		"typeProperties": {
-			"entityName": "cr01c_productgroup"
+			"entityName": "cr01c_producttext"
 		}
 	}
 }
