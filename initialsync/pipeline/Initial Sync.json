@@ -97,6 +97,69 @@
 						"value": "@and(equals(variables('JobStatecode'),'3'), \nequals(variables('JobStatuscode'),'30'))",
 						"type": "Expression"
 					},
+					"activities": [
+						{
+							"name": "Wait until Delete Job Complete",
+							"type": "Wait",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"waitTimeInSeconds": 30
+							}
+						},
+						{
+							"name": "Check Job State",
+							"type": "WebActivity",
+							"dependsOn": [
+								{
+									"activity": "Wait until Delete Job Complete",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"url": {
+									"value": "@{variables('Dataverse Environment')}api/data/v9.2/bulkdeleteoperations?$filter=_asyncoperationid_value eq '@{variables('DeleteJobId')}'",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Set variable1",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "Check Job State",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": []
+						},
+						{
+							"name": "Set variable2",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "Check Job State",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": []
+						}
+					],
 					"timeout": "7.00:00:00"
 				}
 			}
