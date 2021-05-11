@@ -1357,7 +1357,7 @@
 					},
 					"sink": {
 						"type": "AzureSqlSink",
-						"preCopyScript": "DELETE FROM IdMapping WHERE entity = 'cr01c_productgroup'",
+						"preCopyScript": "DELETE FROM IdMapping WHERE entity = 'cr01c_product'",
 						"disableMetricsCollection": false
 					},
 					"enableStaging": false,
