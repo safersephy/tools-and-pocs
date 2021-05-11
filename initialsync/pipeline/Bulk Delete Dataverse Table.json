@@ -1,5 +1,5 @@
 {
-	"name": "Initial Sync",
+	"name": "Bulk Delete Dataverse Table",
 	"properties": {
 		"activities": [
 			{
@@ -90,7 +90,14 @@
 				"name": "Until Delete Job has run",
 				"description": "Checks if state is 3 (completed) and status 30 (succeeded)",
 				"type": "Until",
-				"dependsOn": [],
+				"dependsOn": [
+					{
+						"activity": "Set Delete Job Id",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"userProperties": [],
 				"typeProperties": {
 					"expression": {
@@ -130,11 +137,19 @@
 								"url": {
 									"value": "@{variables('Dataverse Environment')}api/data/v9.2/bulkdeleteoperations?$filter=_asyncoperationid_value eq '@{variables('DeleteJobId')}'",
 									"type": "Expression"
+								},
+								"method": "GET",
+								"headers": {
+									"Authorization": {
+										"value": "Bearer @{activity('GetD365AccessToken').output.access_token}",
+										"type": "Expression"
+									}
 								}
 							}
 						},
 						{
-							"name": "Set variable1",
+							"name": "Set Statecode",
+							"description": "Value\tLabel\tDefaultStatus\tInvariantName\n0\tReady\t1\tReady\n1\tSuspended\t2\tSuspended\n2\tLocked\t2\tLocked\n3\tCompleted\t2\tCompleted",
 							"type": "SetVariable",
 							"dependsOn": [
 								{
@@ -144,10 +159,18 @@
 									]
 								}
 							],
-							"userProperties": []
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "JobStatecode",
+								"value": {
+									"value": "@string(activity('Check Job State').output.value[0].statecode)",
+									"type": "Expression"
+								}
+							}
 						},
 						{
-							"name": "Set variable2",
+							"name": "Set Statuscode",
+							"description": "Value\tLabel\tState\n0\tWaiting For Resources\t0\n10\tWaiting\t1\n11\tRetrying\t1\n12\tPaused\t1\n20\tIn Progress\t2\n21\tPausing\t2\n22\tCanceling\t2\n30\tSucceeded\t3\n31\tFailed\t3\n32\tCanceled\t3",
 							"type": "SetVariable",
 							"dependsOn": [
 								{
@@ -157,7 +180,14 @@
 									]
 								}
 							],
-							"userProperties": []
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "JobStatuscode",
+								"value": {
+									"value": "@string(activity('Check Job State').output.value[0].statuscode)",
+									"type": "Expression"
+								}
+							}
 						}
 					],
 					"timeout": "7.00:00:00"
