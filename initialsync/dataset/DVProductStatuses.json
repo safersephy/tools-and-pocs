@@ -1,0 +1,15 @@
+{
+	"name": "DVProductStatuses",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "FAKROPOCDV",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "CommonDataServiceForAppsEntity",
+		"schema": [],
+		"typeProperties": {
+			"entityName": "cr01c_productstatus"
+		}
+	}
+}

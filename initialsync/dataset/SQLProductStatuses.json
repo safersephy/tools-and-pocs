@@ -1,0 +1,73 @@
+{
+	"name": "SQLProductStatuses",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "FAKROBLDB",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "Id",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Name",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Code",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Type",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Status",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Color",
+				"type": "nvarchar"
+			},
+			{
+				"name": "CreateTimeSpan",
+				"type": "datetime2",
+				"scale": 7
+			},
+			{
+				"name": "ModifyTimeSpan",
+				"type": "datetime2",
+				"scale": 7
+			},
+			{
+				"name": "IsDeleted",
+				"type": "bit"
+			},
+			{
+				"name": "SortOrder",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "CreateUserId",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "ModifyUserId",
+				"type": "int",
+				"precision": 10
+			}
+		],
+		"typeProperties": {
+			"schema": "pim",
+			"table": "ProductStatuses"
+		}
+	}
+}
