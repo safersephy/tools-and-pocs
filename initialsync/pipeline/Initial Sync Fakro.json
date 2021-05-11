@@ -629,9 +629,9 @@
 						"mappings": [
 							{
 								"source": {
-									"name": "Id",
-									"type": "Int32",
-									"physicalType": "int"
+									"name": "Description",
+									"type": "String",
+									"physicalType": "nvarchar"
 								},
 								"sink": {
 									"name": "cr01c_description",
@@ -640,9 +640,9 @@
 							},
 							{
 								"source": {
-									"name": "CreateTimeSpan",
-									"type": "DateTime",
-									"physicalType": "datetime2"
+									"name": "Id",
+									"type": "Int32",
+									"physicalType": "int"
 								},
 								"sink": {
 									"name": "cr01c_id",
@@ -651,9 +651,9 @@
 							},
 							{
 								"source": {
-									"name": "ProductId",
-									"type": "Int32",
-									"physicalType": "int"
+									"name": "ProductIdGUID",
+									"type": "Guid",
+									"physicalType": "uniqueidentifier"
 								},
 								"sink": {
 									"name": "cr01c_productid",
@@ -662,31 +662,9 @@
 							},
 							{
 								"source": {
-									"name": "IsDeleted",
-									"type": "Boolean",
-									"physicalType": "bit"
-								},
-								"sink": {
-									"name": "cr01c_productidname",
-									"type": "String"
-								}
-							},
-							{
-								"source": {
-									"name": "ModifyTimeSpan",
-									"type": "DateTime",
-									"physicalType": "datetime2"
-								},
-								"sink": {
-									"name": "cr01c_producttextid",
-									"type": "Guid"
-								}
-							},
-							{
-								"source": {
-									"name": "ModifyUserId",
-									"type": "Int32",
-									"physicalType": "int"
+									"name": "ProductTextTypeIdGUID",
+									"type": "Guid",
+									"physicalType": "uniqueidentifier"
 								},
 								"sink": {
 									"name": "cr01c_producttexttypeid",
@@ -702,189 +680,6 @@
 								"sink": {
 									"name": "cr01c_producttexttypeidname",
 									"type": "String"
-								}
-							},
-							{
-								"source": {
-									"name": "ProductTextTypeId",
-									"type": "Int32",
-									"physicalType": "int"
-								},
-								"sink": {
-									"name": "createdby",
-									"type": "Guid"
-								}
-							},
-							{
-								"source": {
-									"name": "Description",
-									"type": "String",
-									"physicalType": "nvarchar"
-								},
-								"sink": {
-									"name": "createdbyname",
-									"type": "String"
-								}
-							},
-							{
-								"source": {
-									"name": "ProductTextTypeIdGUID",
-									"type": "Guid",
-									"physicalType": "uniqueidentifier"
-								},
-								"sink": {
-									"name": "createdbyyominame",
-									"type": "String"
-								}
-							},
-							{
-								"sink": {
-									"name": "createdon",
-									"type": "DateTime"
-								}
-							},
-							{
-								"sink": {
-									"name": "createdonbehalfby",
-									"type": "Guid"
-								}
-							},
-							{
-								"sink": {
-									"name": "createdonbehalfbyname",
-									"type": "String"
-								}
-							},
-							{
-								"sink": {
-									"name": "createdonbehalfbyyominame",
-									"type": "String"
-								}
-							},
-							{
-								"sink": {
-									"name": "importsequencenumber",
-									"type": "Int32"
-								}
-							},
-							{
-								"sink": {
-									"name": "modifiedby",
-									"type": "Guid"
-								}
-							},
-							{
-								"sink": {
-									"name": "modifiedbyname",
-									"type": "String"
-								}
-							},
-							{
-								"sink": {
-									"name": "modifiedbyyominame",
-									"type": "String"
-								}
-							},
-							{
-								"sink": {
-									"name": "modifiedon",
-									"type": "DateTime"
-								}
-							},
-							{
-								"sink": {
-									"name": "modifiedonbehalfby",
-									"type": "Guid"
-								}
-							},
-							{
-								"sink": {
-									"name": "modifiedonbehalfbyname",
-									"type": "String"
-								}
-							},
-							{
-								"sink": {
-									"name": "modifiedonbehalfbyyominame",
-									"type": "String"
-								}
-							},
-							{
-								"sink": {
-									"name": "overriddencreatedon",
-									"type": "DateTime"
-								}
-							},
-							{
-								"sink": {
-									"name": "ownerid",
-									"type": "Guid"
-								}
-							},
-							{
-								"sink": {
-									"name": "owneridname",
-									"type": "String"
-								}
-							},
-							{
-								"sink": {
-									"name": "owneridtype",
-									"type": "String"
-								}
-							},
-							{
-								"sink": {
-									"name": "owneridyominame",
-									"type": "String"
-								}
-							},
-							{
-								"sink": {
-									"name": "owningbusinessunit",
-									"type": "Guid"
-								}
-							},
-							{
-								"sink": {
-									"name": "owningteam",
-									"type": "Guid"
-								}
-							},
-							{
-								"sink": {
-									"name": "owninguser",
-									"type": "Guid"
-								}
-							},
-							{
-								"sink": {
-									"name": "statecode",
-									"type": "Int32"
-								}
-							},
-							{
-								"sink": {
-									"name": "statuscode",
-									"type": "Int32"
-								}
-							},
-							{
-								"sink": {
-									"name": "timezoneruleversionnumber",
-									"type": "Int32"
-								}
-							},
-							{
-								"sink": {
-									"name": "utcconversiontimezonecode",
-									"type": "Int32"
-								}
-							},
-							{
-								"sink": {
-									"name": "versionnumber",
-									"type": "Int64"
 								}
 							}
 						],
