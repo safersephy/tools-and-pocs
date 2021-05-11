@@ -596,7 +596,7 @@
 				"type": "Copy",
 				"dependsOn": [
 					{
-						"activity": "Join GUIDs with ProductTexts",
+						"activity": "Bulk Delete ProductTexts",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -1225,6 +1225,29 @@
 					"waitOnCompletion": true,
 					"parameters": {
 						"TablenameSingular": "cr01c_product"
+					}
+				}
+			},
+			{
+				"name": "Bulk Delete ProductTexts",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Join GUIDs with ProductTexts",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Bulk Delete Dataverse Table",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"TablenameSingular": "cr01c_producttext"
 					}
 				}
 			}
