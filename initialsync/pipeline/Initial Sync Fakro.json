@@ -584,6 +584,29 @@
 					},
 					"traceLevel": "Fine"
 				}
+			},
+			{
+				"name": "Initial Sync",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Join TextType GUIDs with ProductTexts",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"enableStaging": false
+				}
 			}
 		],
 		"annotations": []
