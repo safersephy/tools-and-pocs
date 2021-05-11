@@ -459,13 +459,97 @@
 				},
 				"inputs": [
 					{
-						"referenceName": "SQLProductTextTypes",
+						"referenceName": "SQLProductGroups",
 						"type": "DatasetReference"
 					}
 				],
 				"outputs": [
 					{
+						"referenceName": "DVProductGroups",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Get TextType GUIDs",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Initial Sync ProductTextTypes",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "CommonDataServiceForAppsSource",
+						"additionalColumns": [
+							{
+								"name": "entity",
+								"value": "cr01c_producttexttype"
+							}
+						]
+					},
+					"sink": {
+						"type": "AzureSqlSink",
+						"preCopyScript": "DELETE FROM IdMapping WHERE entity = 'cr01c_producttexttype'",
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "entity",
+									"type": "String"
+								},
+								"sink": {
+									"name": "entity",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "cr01c_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "extid",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "cr01c_producttexttypeid",
+									"type": "Guid"
+								},
+								"sink": {
+									"name": "dvguid",
+									"type": "Guid"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
 						"referenceName": "DVProductTextTypes",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "IdMapping",
 						"type": "DatasetReference"
 					}
 				]
