@@ -67,7 +67,7 @@
 				}
 			},
 			{
-				"name": "Set variable1",
+				"name": "Set Delete Job Id",
 				"type": "SetVariable",
 				"dependsOn": [
 					{
