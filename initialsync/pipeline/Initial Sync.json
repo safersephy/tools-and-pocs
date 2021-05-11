@@ -85,6 +85,20 @@
 						"type": "Expression"
 					}
 				}
+			},
+			{
+				"name": "Until Delete Job has run",
+				"description": "Checks if state is 3 (completed) and status 30 (succeeded)",
+				"type": "Until",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@and(equals(variables('JobStatecode'),'3'), \nequals(variables('JobStatuscode'),'30'))",
+						"type": "Expression"
+					},
+					"timeout": "7.00:00:00"
+				}
 			}
 		],
 		"parameters": {
