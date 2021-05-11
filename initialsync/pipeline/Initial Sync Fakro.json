@@ -1103,7 +1103,7 @@
 								},
 								"sink": {
 									"name": "cr01c_productstatusid",
-									"type": "String"
+									"type": "Guid"
 								}
 							},
 							{
