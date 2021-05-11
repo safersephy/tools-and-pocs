@@ -14,30 +14,6 @@
 				"precision": 10
 			},
 			{
-				"name": "CreateTimeSpan",
-				"type": "datetime2",
-				"scale": 7
-			},
-			{
-				"name": "CreateUserId",
-				"type": "int",
-				"precision": 10
-			},
-			{
-				"name": "IsDeleted",
-				"type": "bit"
-			},
-			{
-				"name": "ModifyTimeSpan",
-				"type": "datetime2",
-				"scale": 7
-			},
-			{
-				"name": "ModifyUserId",
-				"type": "int",
-				"precision": 10
-			},
-			{
 				"name": "ProductCode",
 				"type": "nvarchar"
 			},
@@ -64,10 +40,6 @@
 				"name": "StatusId",
 				"type": "int",
 				"precision": 10
-			},
-			{
-				"name": "Rowversion",
-				"type": "timestamp"
 			},
 			{
 				"name": "ProductGroupIdGUID",

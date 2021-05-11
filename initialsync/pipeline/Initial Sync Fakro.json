@@ -5,7 +5,14 @@
 			{
 				"name": "Bulk Delete ProductStatuses",
 				"type": "ExecutePipeline",
-				"dependsOn": [],
+				"dependsOn": [
+					{
+						"activity": "Join GUIDs with Products",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"userProperties": [],
 				"typeProperties": {
 					"pipeline": {
@@ -155,7 +162,14 @@
 			{
 				"name": "Bulk Delete ProductTypes",
 				"type": "ExecutePipeline",
-				"dependsOn": [],
+				"dependsOn": [
+					{
+						"activity": "Join GUIDs with Products",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"userProperties": [],
 				"typeProperties": {
 					"pipeline": {
@@ -261,7 +275,14 @@
 			{
 				"name": "Bulk Delete ProductTextTypes",
 				"type": "ExecutePipeline",
-				"dependsOn": [],
+				"dependsOn": [
+					{
+						"activity": "Get Groups GUIDs",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"userProperties": [],
 				"typeProperties": {
 					"pipeline": {
@@ -367,7 +388,14 @@
 			{
 				"name": "Bulk Delete ProductGroups",
 				"type": "ExecutePipeline",
-				"dependsOn": [],
+				"dependsOn": [
+					{
+						"activity": "Join GUIDs with Products",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"userProperties": [],
 				"typeProperties": {
 					"pipeline": {
@@ -958,26 +986,7 @@
 			{
 				"name": "Join GUIDs with Products",
 				"type": "ExecuteDataFlow",
-				"dependsOn": [
-					{
-						"activity": "Get Statuses GUIDs",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					},
-					{
-						"activity": "Get Types GUIDs",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					},
-					{
-						"activity": "Get Groups GUIDs",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
+				"dependsOn": [],
 				"policy": {
 					"timeout": "7.00:00:00",
 					"retry": 0,
@@ -1210,7 +1219,13 @@
 				"type": "ExecutePipeline",
 				"dependsOn": [
 					{
-						"activity": "Join GUIDs with Products",
+						"activity": "Get Statuses GUIDs",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Get Types GUIDs",
 						"dependencyConditions": [
 							"Succeeded"
 						]
