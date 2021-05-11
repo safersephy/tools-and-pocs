@@ -217,12 +217,107 @@
 							},
 							{
 								"source": {
-									"name": "Name",
+									"name": "Code",
 									"type": "String",
 									"physicalType": "nvarchar"
 								},
 								"sink": {
-									"name": "cr01c_name",
+									"name": "cr01c_code",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Description",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "cr01c_description",
+									"type": "String"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SQLProductTypes",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DVProductTypes",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Bulk Delete ProductTextTypes",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Bulk Delete Dataverse Table",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"TablenameSingular": "cr01c_producttexttype"
+					}
+				}
+			},
+			{
+				"name": "Initial Sync ProductTextTypes",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Bulk Delete ProductTextTypes",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "CommonDataServiceForAppsSink",
+						"writeBatchSize": 10,
+						"writeBehavior": "upsert",
+						"ignoreNullValues": false,
+						"alternateKeyName": "cr01c_id"
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Id",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "cr01c_id",
 									"type": "String"
 								}
 							},
@@ -239,46 +334,13 @@
 							},
 							{
 								"source": {
-									"name": "Type",
-									"type": "Int32",
-									"physicalType": "int"
-								},
-								"sink": {
-									"name": "cr01c_type",
-									"type": "Int32"
-								}
-							},
-							{
-								"source": {
-									"name": "Status",
-									"type": "Int32",
-									"physicalType": "int"
-								},
-								"sink": {
-									"name": "cr01c_status",
-									"type": "Int32"
-								}
-							},
-							{
-								"source": {
-									"name": "Color",
+									"name": "Description",
 									"type": "String",
 									"physicalType": "nvarchar"
 								},
 								"sink": {
-									"name": "cr01c_color",
+									"name": "cr01c_description",
 									"type": "String"
-								}
-							},
-							{
-								"source": {
-									"name": "SortOrder",
-									"type": "Int32",
-									"physicalType": "int"
-								},
-								"sink": {
-									"name": "cr01c_sortorder",
-									"type": "Int32"
 								}
 							}
 						],
@@ -291,13 +353,119 @@
 				},
 				"inputs": [
 					{
-						"referenceName": "SQLProductStatuses",
+						"referenceName": "SQLProductTextTypes",
 						"type": "DatasetReference"
 					}
 				],
 				"outputs": [
 					{
-						"referenceName": "DVProductStatuses",
+						"referenceName": "DVProductTextTypes",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Bulk Delete ProductGroups",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Bulk Delete Dataverse Table",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"TablenameSingular": "cr01c_productgroup"
+					}
+				}
+			},
+			{
+				"name": "Initial Sync ProductGroups",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Bulk Delete ProductGroups",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "CommonDataServiceForAppsSink",
+						"writeBatchSize": 10,
+						"writeBehavior": "upsert",
+						"ignoreNullValues": false,
+						"alternateKeyName": "cr01c_id"
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "Id",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "cr01c_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Code",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "cr01c_code",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "Description",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "cr01c_description",
+									"type": "String"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SQLProductTextTypes",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DVProductTextTypes",
 						"type": "DatasetReference"
 					}
 				]
