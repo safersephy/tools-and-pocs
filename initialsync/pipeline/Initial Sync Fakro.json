@@ -5,14 +5,7 @@
 			{
 				"name": "Bulk Delete ProductStatuses",
 				"type": "ExecutePipeline",
-				"dependsOn": [
-					{
-						"activity": "Join GUIDs with Products",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
+				"dependsOn": [],
 				"userProperties": [],
 				"typeProperties": {
 					"pipeline": {
@@ -162,14 +155,7 @@
 			{
 				"name": "Bulk Delete ProductTypes",
 				"type": "ExecutePipeline",
-				"dependsOn": [
-					{
-						"activity": "Join GUIDs with Products",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
+				"dependsOn": [],
 				"userProperties": [],
 				"typeProperties": {
 					"pipeline": {
@@ -277,7 +263,7 @@
 				"type": "ExecutePipeline",
 				"dependsOn": [
 					{
-						"activity": "Get Groups GUIDs",
+						"activity": "Join GUIDs with Products",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -388,14 +374,7 @@
 			{
 				"name": "Bulk Delete ProductGroups",
 				"type": "ExecutePipeline",
-				"dependsOn": [
-					{
-						"activity": "Join GUIDs with Products",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
+				"dependsOn": [],
 				"userProperties": [],
 				"typeProperties": {
 					"pipeline": {
@@ -959,7 +938,7 @@
 							},
 							{
 								"source": {
-									"name": "cr01c_producttypeid",
+									"name": "cr01c_productgroupid",
 									"type": "Guid"
 								},
 								"sink": {
@@ -986,7 +965,26 @@
 			{
 				"name": "Join GUIDs with Products",
 				"type": "ExecuteDataFlow",
-				"dependsOn": [],
+				"dependsOn": [
+					{
+						"activity": "Get Groups GUIDs",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Get Types GUIDs",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Get Statuses GUIDs",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"policy": {
 					"timeout": "7.00:00:00",
 					"retry": 0,
@@ -1190,7 +1188,7 @@
 							},
 							{
 								"source": {
-									"name": "cr01c_producttypeid",
+									"name": "cr01c_productid",
 									"type": "Guid"
 								},
 								"sink": {
@@ -1219,13 +1217,7 @@
 				"type": "ExecutePipeline",
 				"dependsOn": [
 					{
-						"activity": "Get Statuses GUIDs",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					},
-					{
-						"activity": "Get Types GUIDs",
+						"activity": "Join GUIDs with Products",
 						"dependencyConditions": [
 							"Succeeded"
 						]
