@@ -5,7 +5,14 @@
 			{
 				"name": "Bulk Delete ProductStatuses",
 				"type": "ExecutePipeline",
-				"dependsOn": [],
+				"dependsOn": [
+					{
+						"activity": "Bulk Delete Products",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"userProperties": [],
 				"typeProperties": {
 					"pipeline": {
@@ -155,7 +162,14 @@
 			{
 				"name": "Bulk Delete ProductTypes",
 				"type": "ExecutePipeline",
-				"dependsOn": [],
+				"dependsOn": [
+					{
+						"activity": "Bulk Delete Products",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"userProperties": [],
 				"typeProperties": {
 					"pipeline": {
@@ -263,7 +277,7 @@
 				"type": "ExecutePipeline",
 				"dependsOn": [
 					{
-						"activity": "Join GUIDs with Products",
+						"activity": "Bulk Delete ProductTexts",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -286,7 +300,7 @@
 				"type": "Copy",
 				"dependsOn": [
 					{
-						"activity": "Bulk Delete ProductTextTypes",
+						"activity": "Join GUIDs with Products",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -374,7 +388,14 @@
 			{
 				"name": "Bulk Delete ProductGroups",
 				"type": "ExecutePipeline",
-				"dependsOn": [],
+				"dependsOn": [
+					{
+						"activity": "Bulk Delete Products",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"userProperties": [],
 				"typeProperties": {
 					"pipeline": {
@@ -603,7 +624,7 @@
 				"type": "Copy",
 				"dependsOn": [
 					{
-						"activity": "Bulk Delete ProductTexts",
+						"activity": "Join GUIDs with ProductTexts",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -676,17 +697,6 @@
 								"sink": {
 									"name": "cr01c_producttexttypeid",
 									"type": "Guid"
-								}
-							},
-							{
-								"source": {
-									"name": "ProductId",
-									"type": "Int32",
-									"physicalType": "int"
-								},
-								"sink": {
-									"name": "cr01c_producttexttypeidname",
-									"type": "String"
 								}
 							}
 						],
@@ -1010,7 +1020,7 @@
 				"type": "Copy",
 				"dependsOn": [
 					{
-						"activity": "Bulk Delete Products",
+						"activity": "Join GUIDs with Products",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -1217,7 +1227,7 @@
 				"type": "ExecutePipeline",
 				"dependsOn": [
 					{
-						"activity": "Join GUIDs with Products",
+						"activity": "Bulk Delete ProductTexts",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -1238,14 +1248,7 @@
 			{
 				"name": "Bulk Delete ProductTexts",
 				"type": "ExecutePipeline",
-				"dependsOn": [
-					{
-						"activity": "Join GUIDs with ProductTexts",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
+				"dependsOn": [],
 				"userProperties": [],
 				"typeProperties": {
 					"pipeline": {
