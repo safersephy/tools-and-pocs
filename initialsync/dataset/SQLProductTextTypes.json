@@ -1,0 +1,34 @@
+{
+	"name": "SQLProductTextTypes",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "FAKROBLDB",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "Id",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Code",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Description",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Rowversion",
+				"type": "timestamp"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "ProductTextTypes"
+		}
+	}
+}
