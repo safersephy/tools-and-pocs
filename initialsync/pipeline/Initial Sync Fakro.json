@@ -553,6 +553,37 @@
 						"type": "DatasetReference"
 					}
 				]
+			},
+			{
+				"name": "Join TextType GUIDs with ProductTexts",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "Get TextType GUIDs",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "Join ProductTextType GUIDs with ProductTexts",
+						"type": "DataFlowReference"
+					},
+					"compute": {
+						"coreCount": 16,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
 			}
 		],
 		"annotations": []
