@@ -1,0 +1,16 @@
+{
+	"name": "DVProducts",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "FAKROPOCDV",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "CommonDataServiceForAppsEntity",
+		"schema": [],
+		"typeProperties": {
+			"entityName": "cr01c_product"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

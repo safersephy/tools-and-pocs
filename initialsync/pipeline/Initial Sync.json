@@ -1,0 +1,126 @@
+{
+	"name": "Initial Sync",
+	"properties": {
+		"activities": [
+			{
+				"name": "GetD365AccessToken",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": {
+						"value": "@concat('https://login.microsoftonline.com/', variables('TenantID'), '/oauth2/token')",
+						"type": "Expression"
+					},
+					"method": "POST",
+					"headers": {
+						"Content-Type": "application/x-www-form-urlencoded"
+					},
+					"body": {
+						"value": "@variables('AuthRequestBody')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Plan Bulkdelete Job",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "GetD365AccessToken",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": {
+						"value": "@{variables('Dataverse Environment')}api/data/v9.2/BulkDelete",
+						"type": "Expression"
+					},
+					"method": "POST",
+					"headers": {
+						"Authorization": {
+							"value": "Bearer @{activity('GetD365AccessToken').output.access_token}",
+							"type": "Expression"
+						}
+					},
+					"body": {
+						"value": "{\"JobName\":\"ADF Delete @{pipeline().parameters.TablenameSingular}\",\"SendEmailNotification\":false,\"RecurrencePattern\":\"\",\"StartDateTime\":\"\",\"ToRecipients\":[],\"CCRecipients\":[],\"QuerySet\":[{\"EntityName\":\"@{pipeline().parameters.TablenameSingular}\"}]}",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Set variable1",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Plan Bulkdelete Job",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "DeleteJobId",
+					"value": {
+						"value": "@activity('Plan Bulkdelete Job').output.JobId",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"TablenameSingular": {
+				"type": "string",
+				"defaultValue": "cr83c_sqlemployee"
+			}
+		},
+		"variables": {
+			"TenantID": {
+				"type": "String",
+				"defaultValue": "d9e6a08b-33cf-4b9b-ad69-00accc74df0c"
+			},
+			"AuthRequestBody": {
+				"type": "String",
+				"defaultValue": "client_id=353fa32d-a5d9-48f7-a5b7-6a8f69108e3f&grant_type=client_credentials&redirect_uri=https%3A%2F%2Fadf.azure.com%2F&resource=https%3A%2F%2Fpocfakro.crm4.dynamics.com%2F&client_secret=e5sY145YJ0ga7.y4Ysk~-_JMjzX_d08UkZ"
+			},
+			"DeleteJobId": {
+				"type": "String",
+				"defaultValue": "0"
+			},
+			"JobStatecode": {
+				"type": "String",
+				"defaultValue": "0"
+			},
+			"JobStatuscode": {
+				"type": "String",
+				"defaultValue": "0"
+			},
+			"Dataverse Environment": {
+				"type": "String",
+				"defaultValue": "https://pocfakro.crm4.dynamics.com/"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2021-05-11T09:39:36Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

@@ -1,0 +1,9 @@
+{
+	"name": "FAKROPOC",
+	"location": "westeurope",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "ca8231e2-e923-47d2-8307-79f4e323fee7",
+		"tenantId": "c01c5f96-f5eb-4dc6-b39f-9807ff40a466"
+	}
+}
