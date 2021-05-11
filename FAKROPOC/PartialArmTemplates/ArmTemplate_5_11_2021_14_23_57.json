@@ -1,0 +1,2258 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "FAKROPOC"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/Bulk Delete Dataverse Table')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "GetD365AccessToken",
+						"type": "WebActivity",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"url": {
+								"value": "@concat('https://login.microsoftonline.com/', variables('TenantID'), '/oauth2/token')",
+								"type": "Expression"
+							},
+							"method": "POST",
+							"headers": {
+								"Content-Type": "application/x-www-form-urlencoded"
+							},
+							"body": {
+								"value": "@variables('AuthRequestBody')",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Plan Bulkdelete Job",
+						"type": "WebActivity",
+						"dependsOn": [
+							{
+								"activity": "GetD365AccessToken",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"url": {
+								"value": "@{variables('Dataverse Environment')}api/data/v9.2/BulkDelete",
+								"type": "Expression"
+							},
+							"method": "POST",
+							"headers": {
+								"Authorization": {
+									"value": "Bearer @{activity('GetD365AccessToken').output.access_token}",
+									"type": "Expression"
+								}
+							},
+							"body": {
+								"value": "{\"JobName\":\"ADF Delete @{pipeline().parameters.TablenameSingular}\",\"SendEmailNotification\":false,\"RecurrencePattern\":\"\",\"StartDateTime\":\"\",\"ToRecipients\":[],\"CCRecipients\":[],\"QuerySet\":[{\"EntityName\":\"@{pipeline().parameters.TablenameSingular}\"}]}",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Set Delete Job Id",
+						"type": "SetVariable",
+						"dependsOn": [
+							{
+								"activity": "Plan Bulkdelete Job",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "DeleteJobId",
+							"value": {
+								"value": "@activity('Plan Bulkdelete Job').output.JobId",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Until Delete Job has run",
+						"description": "Checks if state is 3 (completed) and status 30 (succeeded)",
+						"type": "Until",
+						"dependsOn": [
+							{
+								"activity": "Set Delete Job Id",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"expression": {
+								"value": "@and(equals(variables('JobStatecode'),'3'), \nequals(variables('JobStatuscode'),'30'))",
+								"type": "Expression"
+							},
+							"activities": [
+								{
+									"name": "Wait until Delete Job Complete",
+									"type": "Wait",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"waitTimeInSeconds": 30
+									}
+								},
+								{
+									"name": "Check Job State",
+									"type": "WebActivity",
+									"dependsOn": [
+										{
+											"activity": "Wait until Delete Job Complete",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"url": {
+											"value": "@{variables('Dataverse Environment')}api/data/v9.2/bulkdeleteoperations?$filter=_asyncoperationid_value eq '@{variables('DeleteJobId')}'",
+											"type": "Expression"
+										},
+										"method": "GET",
+										"headers": {
+											"Authorization": {
+												"value": "Bearer @{activity('GetD365AccessToken').output.access_token}",
+												"type": "Expression"
+											}
+										}
+									}
+								},
+								{
+									"name": "Set Statecode",
+									"description": "Value\tLabel\tDefaultStatus\tInvariantName\n0\tReady\t1\tReady\n1\tSuspended\t2\tSuspended\n2\tLocked\t2\tLocked\n3\tCompleted\t2\tCompleted",
+									"type": "SetVariable",
+									"dependsOn": [
+										{
+											"activity": "Check Job State",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "JobStatecode",
+										"value": {
+											"value": "@string(activity('Check Job State').output.value[0].statecode)",
+											"type": "Expression"
+										}
+									}
+								},
+								{
+									"name": "Set Statuscode",
+									"description": "Value\tLabel\tState\n0\tWaiting For Resources\t0\n10\tWaiting\t1\n11\tRetrying\t1\n12\tPaused\t1\n20\tIn Progress\t2\n21\tPausing\t2\n22\tCanceling\t2\n30\tSucceeded\t3\n31\tFailed\t3\n32\tCanceled\t3",
+									"type": "SetVariable",
+									"dependsOn": [
+										{
+											"activity": "Check Job State",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "JobStatuscode",
+										"value": {
+											"value": "@string(activity('Check Job State').output.value[0].statuscode)",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"timeout": "7.00:00:00"
+						}
+					}
+				],
+				"parameters": {
+					"TablenameSingular": {
+						"type": "string",
+						"defaultValue": "cr83c_sqlemployee"
+					}
+				},
+				"variables": {
+					"TenantID": {
+						"type": "String",
+						"defaultValue": "d9e6a08b-33cf-4b9b-ad69-00accc74df0c"
+					},
+					"AuthRequestBody": {
+						"type": "String",
+						"defaultValue": "client_id=353fa32d-a5d9-48f7-a5b7-6a8f69108e3f&grant_type=client_credentials&redirect_uri=https%3A%2F%2Fadf.azure.com%2F&resource=https%3A%2F%2Fpocfakro.crm4.dynamics.com%2F&client_secret=e5sY145YJ0ga7.y4Ysk~-_JMjzX_d08UkZ"
+					},
+					"DeleteJobId": {
+						"type": "String",
+						"defaultValue": "0"
+					},
+					"JobStatecode": {
+						"type": "String",
+						"defaultValue": "0"
+					},
+					"JobStatuscode": {
+						"type": "String",
+						"defaultValue": "0"
+					},
+					"Dataverse Environment": {
+						"type": "String",
+						"defaultValue": "https://pocfakro.crm4.dynamics.com/"
+					}
+				},
+				"annotations": [],
+				"lastPublishTime": "2021-05-11T09:39:36Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Initial Sync Fakro')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Bulk Delete ProductStatuses",
+						"type": "ExecutePipeline",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "Bulk Delete Dataverse Table",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {
+								"TablenameSingular": "cr01c_productstatus"
+							}
+						}
+					},
+					{
+						"name": "Initial Sync ProductStatuses",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Bulk Delete ProductStatuses",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "CommonDataServiceForAppsSink",
+								"writeBatchSize": 10,
+								"writeBehavior": "upsert",
+								"ignoreNullValues": false,
+								"alternateKeyName": "cr01c_id"
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "Id",
+											"type": "Int32",
+											"physicalType": "int"
+										},
+										"sink": {
+											"name": "cr01c_id",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "Name",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "cr01c_name",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "Code",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "cr01c_code",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "Type",
+											"type": "Int32",
+											"physicalType": "int"
+										},
+										"sink": {
+											"name": "cr01c_type",
+											"type": "Int32"
+										}
+									},
+									{
+										"source": {
+											"name": "Status",
+											"type": "Int32",
+											"physicalType": "int"
+										},
+										"sink": {
+											"name": "cr01c_status",
+											"type": "Int32"
+										}
+									},
+									{
+										"source": {
+											"name": "Color",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "cr01c_color",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "SortOrder",
+											"type": "Int32",
+											"physicalType": "int"
+										},
+										"sink": {
+											"name": "cr01c_sortorder",
+											"type": "Int32"
+										}
+									}
+								],
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "SQLProductStatuses",
+								"type": "DatasetReference"
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "DVProductStatuses",
+								"type": "DatasetReference"
+							}
+						]
+					},
+					{
+						"name": "Bulk Delete ProductTypes",
+						"type": "ExecutePipeline",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "Bulk Delete Dataverse Table",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {
+								"TablenameSingular": "cr01c_producttype"
+							}
+						}
+					},
+					{
+						"name": "Initial Sync ProductTypes",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Bulk Delete ProductTypes",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "CommonDataServiceForAppsSink",
+								"writeBatchSize": 10,
+								"writeBehavior": "upsert",
+								"ignoreNullValues": false,
+								"alternateKeyName": "cr01c_id"
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "Id",
+											"type": "Int32",
+											"physicalType": "int"
+										},
+										"sink": {
+											"name": "cr01c_id",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "Code",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "cr01c_code",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "Description",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "cr01c_description",
+											"type": "String"
+										}
+									}
+								],
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "SQLProductTypes",
+								"type": "DatasetReference"
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "DVProductTypes",
+								"type": "DatasetReference"
+							}
+						]
+					},
+					{
+						"name": "Bulk Delete ProductTextTypes",
+						"type": "ExecutePipeline",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "Bulk Delete Dataverse Table",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {
+								"TablenameSingular": "cr01c_producttexttype"
+							}
+						}
+					},
+					{
+						"name": "Initial Sync ProductTextTypes",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Bulk Delete ProductTextTypes",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "CommonDataServiceForAppsSink",
+								"writeBatchSize": 10,
+								"writeBehavior": "upsert",
+								"ignoreNullValues": false,
+								"alternateKeyName": "cr01c_id"
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "Id",
+											"type": "Int32",
+											"physicalType": "int"
+										},
+										"sink": {
+											"name": "cr01c_id",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "Code",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "cr01c_code",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "Description",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "cr01c_description",
+											"type": "String"
+										}
+									}
+								],
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "SQLProductTextTypes",
+								"type": "DatasetReference"
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "DVProductTextTypes",
+								"type": "DatasetReference"
+							}
+						]
+					},
+					{
+						"name": "Bulk Delete ProductGroups",
+						"type": "ExecutePipeline",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "Bulk Delete Dataverse Table",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {
+								"TablenameSingular": "cr01c_productgroup"
+							}
+						}
+					},
+					{
+						"name": "Initial Sync ProductGroups",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Bulk Delete ProductGroups",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "CommonDataServiceForAppsSink",
+								"writeBatchSize": 10,
+								"writeBehavior": "upsert",
+								"ignoreNullValues": false,
+								"alternateKeyName": "cr01c_id"
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "Id",
+											"type": "Int32",
+											"physicalType": "int"
+										},
+										"sink": {
+											"name": "cr01c_id",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "Code",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "cr01c_code",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "Description",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "cr01c_description",
+											"type": "String"
+										}
+									}
+								],
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "SQLProductGroups",
+								"type": "DatasetReference"
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "DVProductGroups",
+								"type": "DatasetReference"
+							}
+						]
+					},
+					{
+						"name": "Get TextType GUIDs",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Initial Sync ProductTextTypes",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "CommonDataServiceForAppsSource",
+								"additionalColumns": [
+									{
+										"name": "entity",
+										"value": "cr01c_producttexttype"
+									}
+								]
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"preCopyScript": "DELETE FROM IdMapping WHERE entity = 'cr01c_producttexttype'",
+								"disableMetricsCollection": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "entity",
+											"type": "String"
+										},
+										"sink": {
+											"name": "entity",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "cr01c_id",
+											"type": "String"
+										},
+										"sink": {
+											"name": "extid",
+											"type": "Int32"
+										}
+									},
+									{
+										"source": {
+											"name": "cr01c_producttexttypeid",
+											"type": "Guid"
+										},
+										"sink": {
+											"name": "dvguid",
+											"type": "Guid"
+										}
+									}
+								]
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "DVProductTextTypes",
+								"type": "DatasetReference"
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "IdMapping",
+								"type": "DatasetReference"
+							}
+						]
+					},
+					{
+						"name": "Join GUIDs with ProductTexts",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "Get TextType GUIDs",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							},
+							{
+								"activity": "Get Product GUIDs",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "Join ProductTextType GUIDs with ProductTexts",
+								"type": "DataFlowReference"
+							},
+							"compute": {
+								"coreCount": 16,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "Initial Sync ProductTexts",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Join GUIDs with ProductTexts",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "CommonDataServiceForAppsSink",
+								"writeBatchSize": 10,
+								"writeBehavior": "upsert",
+								"ignoreNullValues": false,
+								"alternateKeyName": "cr01c_id"
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "Description",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "cr01c_description",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "Id",
+											"type": "Int32",
+											"physicalType": "int"
+										},
+										"sink": {
+											"name": "cr01c_id",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "ProductIdGUID",
+											"type": "Guid",
+											"physicalType": "uniqueidentifier"
+										},
+										"sink": {
+											"name": "cr01c_productid",
+											"type": "Guid"
+										}
+									},
+									{
+										"source": {
+											"name": "ProductTextTypeIdGUID",
+											"type": "Guid",
+											"physicalType": "uniqueidentifier"
+										},
+										"sink": {
+											"name": "cr01c_producttexttypeid",
+											"type": "Guid"
+										}
+									},
+									{
+										"source": {
+											"name": "ProductId",
+											"type": "Int32",
+											"physicalType": "int"
+										},
+										"sink": {
+											"name": "cr01c_producttexttypeidname",
+											"type": "String"
+										}
+									}
+								],
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "tmpProductTexts",
+								"type": "DatasetReference"
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "DVProductTexts",
+								"type": "DatasetReference"
+							}
+						]
+					},
+					{
+						"name": "Get Statuses GUIDs",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Initial Sync ProductStatuses",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "CommonDataServiceForAppsSource",
+								"additionalColumns": [
+									{
+										"name": "entity",
+										"value": "cr01c_productstatus"
+									}
+								]
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"preCopyScript": "DELETE FROM IdMapping WHERE entity = 'cr01c_productstatus'",
+								"disableMetricsCollection": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "entity",
+											"type": "String"
+										},
+										"sink": {
+											"name": "entity",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "cr01c_id",
+											"type": "String"
+										},
+										"sink": {
+											"name": "extid",
+											"type": "Int32"
+										}
+									},
+									{
+										"source": {
+											"name": "cr01c_productstatusid",
+											"type": "Guid"
+										},
+										"sink": {
+											"name": "dvguid",
+											"type": "Guid"
+										}
+									}
+								]
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "DVProductStatuses",
+								"type": "DatasetReference"
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "IdMapping",
+								"type": "DatasetReference"
+							}
+						]
+					},
+					{
+						"name": "Get Types GUIDs",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Initial Sync ProductTypes",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "CommonDataServiceForAppsSource",
+								"additionalColumns": [
+									{
+										"name": "entity",
+										"value": "cr01c_producttype"
+									}
+								]
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"preCopyScript": "DELETE FROM IdMapping WHERE entity = 'cr01c_producttype'",
+								"disableMetricsCollection": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "entity",
+											"type": "String"
+										},
+										"sink": {
+											"name": "entity",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "cr01c_id",
+											"type": "String"
+										},
+										"sink": {
+											"name": "extid",
+											"type": "Int32"
+										}
+									},
+									{
+										"source": {
+											"name": "cr01c_producttypeid",
+											"type": "Guid"
+										},
+										"sink": {
+											"name": "dvguid",
+											"type": "Guid"
+										}
+									}
+								]
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "DVProductTypes",
+								"type": "DatasetReference"
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "IdMapping",
+								"type": "DatasetReference"
+							}
+						]
+					},
+					{
+						"name": "Get Groups GUIDs",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Initial Sync ProductGroups",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "CommonDataServiceForAppsSource",
+								"additionalColumns": [
+									{
+										"name": "entity",
+										"value": "cr01c_productgroup"
+									}
+								]
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"preCopyScript": "DELETE FROM IdMapping WHERE entity = 'cr01c_productgroup'",
+								"disableMetricsCollection": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "entity",
+											"type": "String"
+										},
+										"sink": {
+											"name": "entity",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "cr01c_id",
+											"type": "String"
+										},
+										"sink": {
+											"name": "extid",
+											"type": "Int32"
+										}
+									},
+									{
+										"source": {
+											"name": "cr01c_producttypeid",
+											"type": "Guid"
+										},
+										"sink": {
+											"name": "dvguid",
+											"type": "Guid"
+										}
+									}
+								]
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "DVProductGroups",
+								"type": "DatasetReference"
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "IdMapping",
+								"type": "DatasetReference"
+							}
+						]
+					},
+					{
+						"name": "Join GUIDs with Products",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "Get Statuses GUIDs",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							},
+							{
+								"activity": "Get Types GUIDs",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							},
+							{
+								"activity": "Get Groups GUIDs",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "Join GUIDs with Products",
+								"type": "DataFlowReference"
+							},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "Initial Sync Products",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Bulk Delete Products",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "CommonDataServiceForAppsSink",
+								"writeBatchSize": 10,
+								"writeBehavior": "upsert",
+								"ignoreNullValues": false,
+								"alternateKeyName": "cr01c_id"
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "Id",
+											"type": "Int32",
+											"physicalType": "int"
+										},
+										"sink": {
+											"name": "cr01c_id",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "ProductCode",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "cr01c_productcode",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "ProductGroupIdGUID",
+											"type": "Guid",
+											"physicalType": "uniqueidentifier"
+										},
+										"sink": {
+											"name": "cr01c_productgroupid",
+											"type": "Guid"
+										}
+									},
+									{
+										"source": {
+											"name": "ProductName",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "cr01c_productname",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "StatusIdGUID",
+											"type": "Guid",
+											"physicalType": "uniqueidentifier"
+										},
+										"sink": {
+											"name": "cr01c_productstatusid",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "ProductTypeIdGUID",
+											"type": "Guid",
+											"physicalType": "uniqueidentifier"
+										},
+										"sink": {
+											"name": "cr01c_producttypeid",
+											"type": "Guid"
+										}
+									}
+								],
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "tmpProduct",
+								"type": "DatasetReference"
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "DVProducts",
+								"type": "DatasetReference"
+							}
+						]
+					},
+					{
+						"name": "Get Product GUIDs",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Initial Sync Products",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "CommonDataServiceForAppsSource",
+								"additionalColumns": [
+									{
+										"name": "entity",
+										"value": "cr01c_product"
+									}
+								]
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"preCopyScript": "DELETE FROM IdMapping WHERE entity = 'cr01c_product'",
+								"disableMetricsCollection": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "entity",
+											"type": "String"
+										},
+										"sink": {
+											"name": "entity",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "cr01c_id",
+											"type": "String"
+										},
+										"sink": {
+											"name": "extid",
+											"type": "Int32"
+										}
+									},
+									{
+										"source": {
+											"name": "cr01c_producttypeid",
+											"type": "Guid"
+										},
+										"sink": {
+											"name": "dvguid",
+											"type": "Guid"
+										}
+									}
+								]
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "DVProducts",
+								"type": "DatasetReference"
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "IdMapping",
+								"type": "DatasetReference"
+							}
+						]
+					},
+					{
+						"name": "Bulk Delete Products",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "Join GUIDs with Products",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "Bulk Delete Dataverse Table",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {
+								"TablenameSingular": "cr01c_product"
+							}
+						}
+					}
+				],
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/Bulk Delete Dataverse Table')]",
+				"[concat(variables('factoryId'), '/datasets/SQLProductStatuses')]",
+				"[concat(variables('factoryId'), '/datasets/DVProductStatuses')]",
+				"[concat(variables('factoryId'), '/datasets/SQLProductTypes')]",
+				"[concat(variables('factoryId'), '/datasets/DVProductTypes')]",
+				"[concat(variables('factoryId'), '/datasets/SQLProductTextTypes')]",
+				"[concat(variables('factoryId'), '/datasets/DVProductTextTypes')]",
+				"[concat(variables('factoryId'), '/datasets/SQLProductGroups')]",
+				"[concat(variables('factoryId'), '/datasets/DVProductGroups')]",
+				"[concat(variables('factoryId'), '/datasets/IdMapping')]",
+				"[concat(variables('factoryId'), '/dataflows/Join ProductTextType GUIDs with ProductTexts')]",
+				"[concat(variables('factoryId'), '/datasets/tmpProductTexts')]",
+				"[concat(variables('factoryId'), '/datasets/DVProductTexts')]",
+				"[concat(variables('factoryId'), '/dataflows/Join GUIDs with Products')]",
+				"[concat(variables('factoryId'), '/datasets/tmpProduct')]",
+				"[concat(variables('factoryId'), '/datasets/DVProducts')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DVProductGroups')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "FAKROPOCDV",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "CommonDataServiceForAppsEntity",
+				"schema": [],
+				"typeProperties": {
+					"entityName": "cr01c_productgroup"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DVProductStatuses')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "FAKROPOCDV",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "CommonDataServiceForAppsEntity",
+				"schema": [],
+				"typeProperties": {
+					"entityName": "cr01c_productstatus"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DVProductTextTypes')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "FAKROPOCDV",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "CommonDataServiceForAppsEntity",
+				"schema": [],
+				"typeProperties": {
+					"entityName": "cr01c_producttexttype"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DVProductTexts')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "FAKROPOCDV",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "CommonDataServiceForAppsEntity",
+				"schema": [],
+				"typeProperties": {
+					"entityName": "cr01c_producttext"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DVProductTypes')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "FAKROPOCDV",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "CommonDataServiceForAppsEntity",
+				"schema": [],
+				"typeProperties": {
+					"entityName": "cr01c_producttype"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DVProducts')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "FAKROPOCDV",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "CommonDataServiceForAppsEntity",
+				"schema": [],
+				"typeProperties": {
+					"entityName": "cr01c_product"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/IdMapping')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "FAKROBLDB",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "entity",
+						"type": "nvarchar"
+					},
+					{
+						"name": "extid",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "dvguid",
+						"type": "uniqueidentifier"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "IdMapping"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SQLProduct')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "FAKROBLDB",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "Id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "CreateTimeSpan",
+						"type": "datetime2",
+						"scale": 7
+					},
+					{
+						"name": "CreateUserId",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "IsDeleted",
+						"type": "bit"
+					},
+					{
+						"name": "ModifyTimeSpan",
+						"type": "datetime2",
+						"scale": 7
+					},
+					{
+						"name": "ModifyUserId",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "ProductCode",
+						"type": "nvarchar"
+					},
+					{
+						"name": "ProductGroupId",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "ProductName",
+						"type": "nvarchar"
+					},
+					{
+						"name": "ProductTypeId",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "ProductImageId",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "StatusId",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Rowversion",
+						"type": "timestamp"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "Products"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SQLProductGroups')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "FAKROBLDB",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "Id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Code",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Description",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Rowversion",
+						"type": "timestamp"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "ProductGroups"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SQLProductStatuses')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "FAKROBLDB",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "Id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Name",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Code",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Type",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Status",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Color",
+						"type": "nvarchar"
+					},
+					{
+						"name": "CreateTimeSpan",
+						"type": "datetime2",
+						"scale": 7
+					},
+					{
+						"name": "ModifyTimeSpan",
+						"type": "datetime2",
+						"scale": 7
+					},
+					{
+						"name": "IsDeleted",
+						"type": "bit"
+					},
+					{
+						"name": "SortOrder",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "CreateUserId",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "ModifyUserId",
+						"type": "int",
+						"precision": 10
+					}
+				],
+				"typeProperties": {
+					"schema": "pim",
+					"table": "ProductStatuses"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SQLProductTextTypes')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "FAKROBLDB",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "Id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Code",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Description",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Rowversion",
+						"type": "timestamp"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "ProductTextTypes"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SQLProductTexts')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "FAKROBLDB",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "Id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Code",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Description",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Rowversion",
+						"type": "timestamp"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "ProductTexts"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SQLProductTypes')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "FAKROBLDB",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "Id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Code",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Description",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Rowversion",
+						"type": "timestamp"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "ProductTypes"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/tmpProduct')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "FAKROBLDB",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "Id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "CreateTimeSpan",
+						"type": "datetime2",
+						"scale": 7
+					},
+					{
+						"name": "CreateUserId",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "IsDeleted",
+						"type": "bit"
+					},
+					{
+						"name": "ModifyTimeSpan",
+						"type": "datetime2",
+						"scale": 7
+					},
+					{
+						"name": "ModifyUserId",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "ProductCode",
+						"type": "nvarchar"
+					},
+					{
+						"name": "ProductGroupId",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "ProductName",
+						"type": "nvarchar"
+					},
+					{
+						"name": "ProductTypeId",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "ProductImageId",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "StatusId",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Rowversion",
+						"type": "timestamp"
+					},
+					{
+						"name": "ProductGroupIdGUID",
+						"type": "uniqueidentifier"
+					},
+					{
+						"name": "ProductTypeIdGUID",
+						"type": "uniqueidentifier"
+					},
+					{
+						"name": "StatusIdGUID",
+						"type": "uniqueidentifier"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "tmpProducts"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/tmpProductTexts')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "FAKROBLDB",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "Id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "CreateTimeSpan",
+						"type": "datetime2",
+						"scale": 7
+					},
+					{
+						"name": "CreateUserId",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "IsDeleted",
+						"type": "bit"
+					},
+					{
+						"name": "ModifyTimeSpan",
+						"type": "datetime2",
+						"scale": 7
+					},
+					{
+						"name": "ModifyUserId",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "ProductId",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "ProductTextTypeId",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Description",
+						"type": "nvarchar"
+					},
+					{
+						"name": "ProductTextTypeIdGUID",
+						"type": "uniqueidentifier"
+					},
+					{
+						"name": "ProductIdGUID",
+						"type": "uniqueidentifier"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "tmpProductTexts"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Join GUIDs with Products')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "IdMapping",
+								"type": "DatasetReference"
+							},
+							"name": "ProductGroupsGUIDs"
+						},
+						{
+							"dataset": {
+								"referenceName": "IdMapping",
+								"type": "DatasetReference"
+							},
+							"name": "ProductTypesGUIDs"
+						},
+						{
+							"dataset": {
+								"referenceName": "IdMapping",
+								"type": "DatasetReference"
+							},
+							"name": "ProductStatusesGUIDs"
+						},
+						{
+							"dataset": {
+								"referenceName": "SQLProduct",
+								"type": "DatasetReference"
+							},
+							"name": "SQLProduct"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "tmpProduct",
+								"type": "DatasetReference"
+							},
+							"name": "sinktmpProducts"
+						}
+					],
+					"transformations": [
+						{
+							"name": "FilterProductGroupGuids"
+						},
+						{
+							"name": "FilterProductTypeGuids"
+						},
+						{
+							"name": "FilterProductStatusesGuids"
+						},
+						{
+							"name": "JoinStatusesGuidstoProduct"
+						},
+						{
+							"name": "JoinTypesGuidstoProduct"
+						},
+						{
+							"name": "JoinGroupGuidstoProduct"
+						},
+						{
+							"name": "tmpProducts"
+						}
+					],
+					"script": "source(output(\n\t\tentity as string,\n\t\textid as integer,\n\t\tdvguid as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> ProductGroupsGUIDs\nsource(output(\n\t\tentity as string,\n\t\textid as integer,\n\t\tdvguid as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> ProductTypesGUIDs\nsource(output(\n\t\tentity as string,\n\t\textid as integer,\n\t\tdvguid as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> ProductStatusesGUIDs\nsource(output(\n\t\tId as integer,\n\t\tCreateTimeSpan as timestamp,\n\t\tCreateUserId as integer,\n\t\tIsDeleted as boolean,\n\t\tModifyTimeSpan as timestamp,\n\t\tModifyUserId as integer,\n\t\tProductCode as string,\n\t\tProductGroupId as integer,\n\t\tProductName as string,\n\t\tProductTypeId as integer,\n\t\tProductImageId as integer,\n\t\tStatusId as integer,\n\t\tRowversion as binary\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> SQLProduct\nProductGroupsGUIDs filter(entity == 'cr01c_productgroup') ~> FilterProductGroupGuids\nProductTypesGUIDs filter(entity == 'cr01c_producttype') ~> FilterProductTypeGuids\nProductStatusesGUIDs filter(entity == 'cr01c_productstatus') ~> FilterProductStatusesGuids\nFilterProductStatusesGuids, SQLProduct join(extid == StatusId,\n\tjoinType:'right',\n\tbroadcast: 'auto')~> JoinStatusesGuidstoProduct\nFilterProductTypeGuids, JoinStatusesGuidstoProduct join(ProductTypesGUIDs@extid == ProductTypeId,\n\tjoinType:'right',\n\tbroadcast: 'auto')~> JoinTypesGuidstoProduct\nFilterProductGroupGuids, JoinTypesGuidstoProduct join(ProductGroupsGUIDs@extid == ProductGroupId,\n\tjoinType:'right',\n\tbroadcast: 'auto')~> JoinGroupGuidstoProduct\nJoinGroupGuidstoProduct select(mapColumn(\n\t\tProductGroupsGUID = ProductGroupsGUIDs@dvguid,\n\t\tProductTypesGUID = ProductTypesGUIDs@dvguid,\n\t\tProductStatusesGUID = ProductStatusesGUIDs@dvguid,\n\t\tId,\n\t\tCreateTimeSpan,\n\t\tCreateUserId,\n\t\tIsDeleted,\n\t\tModifyTimeSpan,\n\t\tModifyUserId,\n\t\tProductCode,\n\t\tProductGroupId,\n\t\tProductName,\n\t\tProductTypeId,\n\t\tProductImageId,\n\t\tStatusId,\n\t\tRowversion\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> tmpProducts\ntmpProducts sink(input(\n\t\tId as integer,\n\t\tCreateTimeSpan as timestamp,\n\t\tCreateUserId as integer,\n\t\tIsDeleted as boolean,\n\t\tModifyTimeSpan as timestamp,\n\t\tModifyUserId as integer,\n\t\tProductCode as string,\n\t\tProductGroupId as integer,\n\t\tProductName as string,\n\t\tProductTypeId as integer,\n\t\tProductImageId as integer,\n\t\tStatusId as integer,\n\t\tRowversion as binary,\n\t\tProductGroupIdGUID as string,\n\t\tProductTypeIdGUID as string,\n\t\tStatusIdGUID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\ttruncate:true,\n\tformat: 'table',\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> sinktmpProducts"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/IdMapping')]",
+				"[concat(variables('factoryId'), '/datasets/SQLProduct')]",
+				"[concat(variables('factoryId'), '/datasets/tmpProduct')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Join ProductTextType GUIDs with ProductTexts')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "IdMapping",
+								"type": "DatasetReference"
+							},
+							"name": "ProductTextTypeGuids"
+						},
+						{
+							"dataset": {
+								"referenceName": "SQLProductTexts",
+								"type": "DatasetReference"
+							},
+							"name": "SQLProductTexts"
+						},
+						{
+							"dataset": {
+								"referenceName": "IdMapping",
+								"type": "DatasetReference"
+							},
+							"name": "ProductGuids"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "tmpProductTexts",
+								"type": "DatasetReference"
+							},
+							"name": "SinktmpProductTexts"
+						}
+					],
+					"transformations": [
+						{
+							"name": "FilterProductTextTypeGuids"
+						},
+						{
+							"name": "JoinTextTypeGuidstoProductTexts"
+						},
+						{
+							"name": "tmpProductTexts"
+						},
+						{
+							"name": "FilterProductGuids"
+						},
+						{
+							"name": "JoinProductGuidstoProductTexts"
+						}
+					],
+					"script": "source(output(\n\t\tentity as string,\n\t\textid as integer,\n\t\tdvguid as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> ProductTextTypeGuids\nsource(output(\n\t\tId as integer,\n\t\tCreateTimeSpan as timestamp,\n\t\tCreateUserId as integer,\n\t\tIsDeleted as boolean,\n\t\tModifyTimeSpan as timestamp,\n\t\tModifyUserId as integer,\n\t\tProductId as integer,\n\t\tProductTextTypeId as integer,\n\t\tDescription as string,\n\t\tRowversion as binary\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> SQLProductTexts\nsource(output(\n\t\tentity as string,\n\t\textid as integer,\n\t\tdvguid as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> ProductGuids\nProductTextTypeGuids filter(entity == 'cr01c_producttexttype') ~> FilterProductTextTypeGuids\nFilterProductTextTypeGuids, SQLProductTexts join(extid == ProductTextTypeId,\n\tjoinType:'right',\n\tbroadcast: 'auto')~> JoinTextTypeGuidstoProductTexts\nJoinProductGuidstoProductTexts select(mapColumn(\n\t\tProductTextTypeGuid = ProductTextTypeGuids@dvguid,\n\t\tId,\n\t\tCreateTimeSpan,\n\t\tCreateUserId,\n\t\tIsDeleted,\n\t\tModifyTimeSpan,\n\t\tModifyUserId,\n\t\tProductId,\n\t\tProductTextTypeId,\n\t\tDescription,\n\t\tRowversion,\n\t\tProductGuid = ProductGuids@dvguid\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> tmpProductTexts\nProductGuids filter(entity == 'cr01c_producttexttype') ~> FilterProductGuids\nJoinTextTypeGuidstoProductTexts, FilterProductGuids join(ProductId == ProductGuids@extid,\n\tjoinType:'left',\n\tbroadcast: 'auto')~> JoinProductGuidstoProductTexts\ntmpProductTexts sink(input(\n\t\tId as integer,\n\t\tCreateTimeSpan as timestamp,\n\t\tCreateUserId as integer,\n\t\tIsDeleted as boolean,\n\t\tModifyTimeSpan as timestamp,\n\t\tModifyUserId as integer,\n\t\tProductId as integer,\n\t\tProductTextTypeId as integer,\n\t\tDescription as string,\n\t\tProductTextTypeIdGUID as string,\n\t\tProductIdGUID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\ttruncate:true,\n\tformat: 'table',\n\tmapColumn(\n\t\tId,\n\t\tCreateTimeSpan,\n\t\tCreateUserId,\n\t\tIsDeleted,\n\t\tModifyTimeSpan,\n\t\tModifyUserId,\n\t\tProductId,\n\t\tProductTextTypeId,\n\t\tDescription,\n\t\tProductTextTypeIdGUID = ProductTextTypeGuid,\n\t\tProductIdGUID = ProductGuid\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> SinktmpProductTexts"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/IdMapping')]",
+				"[concat(variables('factoryId'), '/datasets/SQLProductTexts')]",
+				"[concat(variables('factoryId'), '/datasets/tmpProductTexts')]"
+			]
+		}
+	]
+}

@@ -1,0 +1,18 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "FAKROPOC"
+		},
+		"FAKROBLDB_connectionString": {
+			"value": ""
+		},
+		"FAKROPOCDV_servicePrincipalCredential": {
+			"value": ""
+		},
+		"FAKROPOCDV_properties_typeProperties_servicePrincipalId": {
+			"value": "353fa32d-a5d9-48f7-a5b7-6a8f69108e3f"
+		}
+	}
+}
