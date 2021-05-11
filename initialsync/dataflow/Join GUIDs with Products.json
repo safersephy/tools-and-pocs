@@ -3,10 +3,58 @@
 	"properties": {
 		"type": "MappingDataFlow",
 		"typeProperties": {
-			"sources": [],
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "IdMapping",
+						"type": "DatasetReference"
+					},
+					"name": "ProductGroupsGUIDs"
+				},
+				{
+					"dataset": {
+						"referenceName": "IdMapping",
+						"type": "DatasetReference"
+					},
+					"name": "ProductTypesGUIDs"
+				},
+				{
+					"dataset": {
+						"referenceName": "IdMapping",
+						"type": "DatasetReference"
+					},
+					"name": "ProductStatusesGUIDs"
+				},
+				{
+					"dataset": {
+						"referenceName": "SQLProduct",
+						"type": "DatasetReference"
+					},
+					"name": "SQLProduct"
+				}
+			],
 			"sinks": [],
-			"transformations": [],
-			"script": ""
+			"transformations": [
+				{
+					"name": "FilterProductGroupGuids"
+				},
+				{
+					"name": "FilterProductTypeGuids"
+				},
+				{
+					"name": "FilterProductStatusesGuids"
+				},
+				{
+					"name": "JoinStatusesGuidstoProduct"
+				},
+				{
+					"name": "JoinTypesGuidstoProduct"
+				},
+				{
+					"name": "JoinGroupGuidstoProduct"
+				}
+			],
+			"script": "source(output(\n\t\tentity as string,\n\t\textid as integer,\n\t\tdvguid as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> ProductGroupsGUIDs\nsource(output(\n\t\tentity as string,\n\t\textid as integer,\n\t\tdvguid as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> ProductTypesGUIDs\nsource(output(\n\t\tentity as string,\n\t\textid as integer,\n\t\tdvguid as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> ProductStatusesGUIDs\nsource(output(\n\t\tId as integer,\n\t\tCreateTimeSpan as timestamp,\n\t\tCreateUserId as integer,\n\t\tIsDeleted as boolean,\n\t\tModifyTimeSpan as timestamp,\n\t\tModifyUserId as integer,\n\t\tProductCode as string,\n\t\tProductGroupId as integer,\n\t\tProductName as string,\n\t\tProductTypeId as integer,\n\t\tProductImageId as integer,\n\t\tStatusId as integer,\n\t\tRowversion as binary\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> SQLProduct\nProductGroupsGUIDs filter(entity == 'cr01c_productgroup') ~> FilterProductGroupGuids\nProductTypesGUIDs filter(entity == 'cr01c_producttype') ~> FilterProductTypeGuids\nProductStatusesGUIDs filter(entity == 'cr01c_productstatus') ~> FilterProductStatusesGuids\nFilterProductStatusesGuids, SQLProduct join(extid == StatusId,\n\tjoinType:'right',\n\tbroadcast: 'auto')~> JoinStatusesGuidstoProduct\nFilterProductTypeGuids, JoinStatusesGuidstoProduct join(ProductTypesGUIDs@extid == ProductTypeId,\n\tjoinType:'right',\n\tbroadcast: 'auto')~> JoinTypesGuidstoProduct\nFilterProductGroupGuids, JoinTypesGuidstoProduct join(ProductGroupsGUIDs@extid == ProductGroupId,\n\tjoinType:'right',\n\tbroadcast: 'auto')~> JoinGroupGuidstoProduct"
 		}
 	}
 }
