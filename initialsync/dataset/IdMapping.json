@@ -1,0 +1,30 @@
+{
+	"name": "IdMapping",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "FAKROBLDB",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "entity",
+				"type": "nvarchar"
+			},
+			{
+				"name": "extid",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "dvguid",
+				"type": "uniqueidentifier"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "IdMapping"
+		}
+	}
+}
