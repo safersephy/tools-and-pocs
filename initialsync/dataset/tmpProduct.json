@@ -38,21 +38,47 @@
 				"precision": 10
 			},
 			{
-				"name": "ProductId",
-				"type": "int",
-				"precision": 10
-			},
-			{
-				"name": "ProductTextTypeId",
-				"type": "int",
-				"precision": 10
-			},
-			{
-				"name": "Description",
+				"name": "ProductCode",
 				"type": "nvarchar"
 			},
 			{
-				"name": "ProductTextTypeIdGUID",
+				"name": "ProductGroupId",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "ProductName",
+				"type": "nvarchar"
+			},
+			{
+				"name": "ProductTypeId",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "ProductImageId",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "StatusId",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Rowversion",
+				"type": "timestamp"
+			},
+			{
+				"name": "ProductGroupIdGUID",
+				"type": "uniqueidentifier"
+			},
+			{
+				"name": "ProductTypeIdGUID",
+				"type": "uniqueidentifier"
+			},
+			{
+				"name": "StatusIdGUID",
 				"type": "uniqueidentifier"
 			}
 		],
