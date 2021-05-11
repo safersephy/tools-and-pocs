@@ -165,15 +165,13 @@
 						"inputs": [
 							{
 								"referenceName": "SQLProductStatuses",
-								"type": "DatasetReference",
-								"parameters": {}
+								"type": "DatasetReference"
 							}
 						],
 						"outputs": [
 							{
 								"referenceName": "DVProductStatuses",
-								"type": "DatasetReference",
-								"parameters": {}
+								"type": "DatasetReference"
 							}
 						]
 					},
@@ -280,15 +278,13 @@
 						"inputs": [
 							{
 								"referenceName": "SQLProductTypes",
-								"type": "DatasetReference",
-								"parameters": {}
+								"type": "DatasetReference"
 							}
 						],
 						"outputs": [
 							{
 								"referenceName": "DVProductTypes",
-								"type": "DatasetReference",
-								"parameters": {}
+								"type": "DatasetReference"
 							}
 						]
 					},
@@ -395,15 +391,13 @@
 						"inputs": [
 							{
 								"referenceName": "SQLProductTextTypes",
-								"type": "DatasetReference",
-								"parameters": {}
+								"type": "DatasetReference"
 							}
 						],
 						"outputs": [
 							{
 								"referenceName": "DVProductTextTypes",
-								"type": "DatasetReference",
-								"parameters": {}
+								"type": "DatasetReference"
 							}
 						]
 					},
@@ -510,15 +504,13 @@
 						"inputs": [
 							{
 								"referenceName": "SQLProductGroups",
-								"type": "DatasetReference",
-								"parameters": {}
+								"type": "DatasetReference"
 							}
 						],
 						"outputs": [
 							{
 								"referenceName": "DVProductGroups",
-								"type": "DatasetReference",
-								"parameters": {}
+								"type": "DatasetReference"
 							}
 						]
 					},
@@ -596,15 +588,13 @@
 						"inputs": [
 							{
 								"referenceName": "DVProductTextTypes",
-								"type": "DatasetReference",
-								"parameters": {}
+								"type": "DatasetReference"
 							}
 						],
 						"outputs": [
 							{
 								"referenceName": "IdMapping",
-								"type": "DatasetReference",
-								"parameters": {}
+								"type": "DatasetReference"
 							}
 						]
 					},
@@ -636,16 +626,8 @@
 						"typeProperties": {
 							"dataflow": {
 								"referenceName": "Join ProductTextType GUIDs with ProductTexts",
-								"type": "DataFlowReference",
-								"parameters": {},
-								"datasetParameters": {
-									"ProductTextTypeGuids": {},
-									"SQLProductTexts": {},
-									"ProductGuids": {},
-									"SinktmpProductTexts": {}
-								}
+								"type": "DataFlowReference"
 							},
-							"staging": {},
 							"compute": {
 								"coreCount": 16,
 								"computeType": "General"
@@ -744,15 +726,13 @@
 						"inputs": [
 							{
 								"referenceName": "tmpProductTexts",
-								"type": "DatasetReference",
-								"parameters": {}
+								"type": "DatasetReference"
 							}
 						],
 						"outputs": [
 							{
 								"referenceName": "DVProductTexts",
-								"type": "DatasetReference",
-								"parameters": {}
+								"type": "DatasetReference"
 							}
 						]
 					},
@@ -830,15 +810,13 @@
 						"inputs": [
 							{
 								"referenceName": "DVProductStatuses",
-								"type": "DatasetReference",
-								"parameters": {}
+								"type": "DatasetReference"
 							}
 						],
 						"outputs": [
 							{
 								"referenceName": "IdMapping",
-								"type": "DatasetReference",
-								"parameters": {}
+								"type": "DatasetReference"
 							}
 						]
 					},
@@ -916,15 +894,13 @@
 						"inputs": [
 							{
 								"referenceName": "DVProductTypes",
-								"type": "DatasetReference",
-								"parameters": {}
+								"type": "DatasetReference"
 							}
 						],
 						"outputs": [
 							{
 								"referenceName": "IdMapping",
-								"type": "DatasetReference",
-								"parameters": {}
+								"type": "DatasetReference"
 							}
 						]
 					},
@@ -1002,15 +978,13 @@
 						"inputs": [
 							{
 								"referenceName": "DVProductGroups",
-								"type": "DatasetReference",
-								"parameters": {}
+								"type": "DatasetReference"
 							}
 						],
 						"outputs": [
 							{
 								"referenceName": "IdMapping",
-								"type": "DatasetReference",
-								"parameters": {}
+								"type": "DatasetReference"
 							}
 						]
 					},
@@ -1048,17 +1022,8 @@
 						"typeProperties": {
 							"dataflow": {
 								"referenceName": "Join GUIDs with Products",
-								"type": "DataFlowReference",
-								"parameters": {},
-								"datasetParameters": {
-									"ProductGroupsGUIDs": {},
-									"ProductTypesGUIDs": {},
-									"ProductStatusesGUIDs": {},
-									"SQLProduct": {},
-									"sinktmpProducts": {}
-								}
+								"type": "DataFlowReference"
 							},
-							"staging": {},
 							"compute": {
 								"coreCount": 8,
 								"computeType": "General"
@@ -1179,15 +1144,13 @@
 						"inputs": [
 							{
 								"referenceName": "tmpProduct",
-								"type": "DatasetReference",
-								"parameters": {}
+								"type": "DatasetReference"
 							}
 						],
 						"outputs": [
 							{
 								"referenceName": "DVProducts",
-								"type": "DatasetReference",
-								"parameters": {}
+								"type": "DatasetReference"
 							}
 						]
 					},
@@ -1265,15 +1228,13 @@
 						"inputs": [
 							{
 								"referenceName": "DVProducts",
-								"type": "DatasetReference",
-								"parameters": {}
+								"type": "DatasetReference"
 							}
 						],
 						"outputs": [
 							{
 								"referenceName": "IdMapping",
-								"type": "DatasetReference",
-								"parameters": {}
+								"type": "DatasetReference"
 							}
 						]
 					},
@@ -1319,7 +1280,263 @@
 				],
 				"annotations": []
 			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/Join ProductTextType GUIDs with ProductTexts')]",
+				"[concat(variables('factoryId'), '/datasets/tmpProductTexts')]",
+				"[concat(variables('factoryId'), '/dataflows/Join GUIDs with Products')]",
+				"[concat(variables('factoryId'), '/datasets/tmpProduct')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/tmpProduct')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "FAKROBLDB",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "Id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "ProductCode",
+						"type": "nvarchar"
+					},
+					{
+						"name": "ProductGroupId",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "ProductName",
+						"type": "nvarchar"
+					},
+					{
+						"name": "ProductTypeId",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "ProductImageId",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "StatusId",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "ProductGroupIdGUID",
+						"type": "uniqueidentifier"
+					},
+					{
+						"name": "ProductTypeIdGUID",
+						"type": "uniqueidentifier"
+					},
+					{
+						"name": "StatusIdGUID",
+						"type": "uniqueidentifier"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "tmpProducts"
+				}
+			},
 			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/tmpProductTexts')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "FAKROBLDB",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "Id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "ProductId",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "ProductTextTypeId",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Description",
+						"type": "nvarchar"
+					},
+					{
+						"name": "ProductTextTypeIdGUID",
+						"type": "uniqueidentifier"
+					},
+					{
+						"name": "ProductIdGUID",
+						"type": "uniqueidentifier"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "tmpProductTexts"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Join GUIDs with Products')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "IdMapping",
+								"type": "DatasetReference"
+							},
+							"name": "ProductGroupsGUIDs"
+						},
+						{
+							"dataset": {
+								"referenceName": "IdMapping",
+								"type": "DatasetReference"
+							},
+							"name": "ProductTypesGUIDs"
+						},
+						{
+							"dataset": {
+								"referenceName": "IdMapping",
+								"type": "DatasetReference"
+							},
+							"name": "ProductStatusesGUIDs"
+						},
+						{
+							"dataset": {
+								"referenceName": "SQLProduct",
+								"type": "DatasetReference"
+							},
+							"name": "SQLProduct"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "tmpProduct",
+								"type": "DatasetReference"
+							},
+							"name": "sinktmpProducts"
+						}
+					],
+					"transformations": [
+						{
+							"name": "FilterProductGroupGuids"
+						},
+						{
+							"name": "FilterProductTypeGuids"
+						},
+						{
+							"name": "FilterProductStatusesGuids"
+						},
+						{
+							"name": "JoinStatusesGuidstoProduct"
+						},
+						{
+							"name": "JoinTypesGuidstoProduct"
+						},
+						{
+							"name": "JoinGroupGuidstoProduct"
+						},
+						{
+							"name": "tmpProducts"
+						}
+					],
+					"script": "source(output(\n\t\tentity as string,\n\t\textid as integer,\n\t\tdvguid as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> ProductGroupsGUIDs\nsource(output(\n\t\tentity as string,\n\t\textid as integer,\n\t\tdvguid as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> ProductTypesGUIDs\nsource(output(\n\t\tentity as string,\n\t\textid as integer,\n\t\tdvguid as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> ProductStatusesGUIDs\nsource(output(\n\t\tId as integer,\n\t\tCreateTimeSpan as timestamp,\n\t\tCreateUserId as integer,\n\t\tIsDeleted as boolean,\n\t\tModifyTimeSpan as timestamp,\n\t\tModifyUserId as integer,\n\t\tProductCode as string,\n\t\tProductGroupId as integer,\n\t\tProductName as string,\n\t\tProductTypeId as integer,\n\t\tProductImageId as integer,\n\t\tStatusId as integer,\n\t\tRowversion as binary\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> SQLProduct\nProductGroupsGUIDs filter(entity == 'cr01c_productgroup') ~> FilterProductGroupGuids\nProductTypesGUIDs filter(entity == 'cr01c_producttype') ~> FilterProductTypeGuids\nProductStatusesGUIDs filter(entity == 'cr01c_productstatus') ~> FilterProductStatusesGuids\nFilterProductStatusesGuids, SQLProduct join(extid == StatusId,\n\tjoinType:'right',\n\tbroadcast: 'auto')~> JoinStatusesGuidstoProduct\nFilterProductTypeGuids, JoinStatusesGuidstoProduct join(ProductTypesGUIDs@extid == ProductTypeId,\n\tjoinType:'right',\n\tbroadcast: 'auto')~> JoinTypesGuidstoProduct\nFilterProductGroupGuids, JoinTypesGuidstoProduct join(ProductGroupsGUIDs@extid == ProductGroupId,\n\tjoinType:'right',\n\tbroadcast: 'auto')~> JoinGroupGuidstoProduct\nJoinGroupGuidstoProduct select(mapColumn(\n\t\tProductGroupsGUID = ProductGroupsGUIDs@dvguid,\n\t\tProductTypesGUID = ProductTypesGUIDs@dvguid,\n\t\tProductStatusesGUID = ProductStatusesGUIDs@dvguid,\n\t\tId,\n\t\tCreateTimeSpan,\n\t\tCreateUserId,\n\t\tIsDeleted,\n\t\tModifyTimeSpan,\n\t\tModifyUserId,\n\t\tProductCode,\n\t\tProductGroupId,\n\t\tProductName,\n\t\tProductTypeId,\n\t\tProductImageId,\n\t\tStatusId,\n\t\tRowversion\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> tmpProducts\ntmpProducts sink(input(\n\t\tId as integer,\n\t\tProductCode as string,\n\t\tProductGroupId as integer,\n\t\tProductName as string,\n\t\tProductTypeId as integer,\n\t\tProductImageId as integer,\n\t\tStatusId as integer,\n\t\tProductGroupIdGUID as string,\n\t\tProductTypeIdGUID as string,\n\t\tStatusIdGUID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\ttruncate:true,\n\tformat: 'table',\n\tmapColumn(\n\t\tId,\n\t\tProductCode,\n\t\tProductGroupId,\n\t\tProductName,\n\t\tProductTypeId,\n\t\tProductImageId,\n\t\tStatusId,\n\t\tProductGroupIdGUID = ProductGroupsGUID,\n\t\tProductTypeIdGUID = ProductTypesGUID,\n\t\tStatusIdGUID = ProductStatusesGUID\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> sinktmpProducts"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/tmpProduct')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Join ProductTextType GUIDs with ProductTexts')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "IdMapping",
+								"type": "DatasetReference"
+							},
+							"name": "ProductTextTypeGuids"
+						},
+						{
+							"dataset": {
+								"referenceName": "SQLProductTexts",
+								"type": "DatasetReference"
+							},
+							"name": "SQLProductTexts"
+						},
+						{
+							"dataset": {
+								"referenceName": "IdMapping",
+								"type": "DatasetReference"
+							},
+							"name": "ProductGuids"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "tmpProductTexts",
+								"type": "DatasetReference"
+							},
+							"name": "SinktmpProductTexts"
+						}
+					],
+					"transformations": [
+						{
+							"name": "FilterProductTextTypeGuids"
+						},
+						{
+							"name": "JoinTextTypeGuidstoProductTexts"
+						},
+						{
+							"name": "tmpProductTexts"
+						},
+						{
+							"name": "FilterProductGuids"
+						},
+						{
+							"name": "JoinProductGuidstoProductTexts"
+						}
+					],
+					"script": "source(output(\n\t\tentity as string,\n\t\textid as integer,\n\t\tdvguid as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> ProductTextTypeGuids\nsource(output(\n\t\tId as integer,\n\t\tCreateTimeSpan as timestamp,\n\t\tCreateUserId as integer,\n\t\tIsDeleted as boolean,\n\t\tModifyTimeSpan as timestamp,\n\t\tModifyUserId as integer,\n\t\tProductId as integer,\n\t\tProductTextTypeId as integer,\n\t\tDescription as string,\n\t\tRowversion as binary\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> SQLProductTexts\nsource(output(\n\t\tentity as string,\n\t\textid as integer,\n\t\tdvguid as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> ProductGuids\nProductTextTypeGuids filter(entity == 'cr01c_producttexttype') ~> FilterProductTextTypeGuids\nFilterProductTextTypeGuids, SQLProductTexts join(extid == ProductTextTypeId,\n\tjoinType:'right',\n\tbroadcast: 'auto')~> JoinTextTypeGuidstoProductTexts\nJoinProductGuidstoProductTexts select(mapColumn(\n\t\tProductTextTypeGuid = ProductTextTypeGuids@dvguid,\n\t\tId,\n\t\tCreateTimeSpan,\n\t\tCreateUserId,\n\t\tIsDeleted,\n\t\tModifyTimeSpan,\n\t\tModifyUserId,\n\t\tProductId,\n\t\tProductTextTypeId,\n\t\tDescription,\n\t\tRowversion,\n\t\tProductGuid = ProductGuids@dvguid\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> tmpProductTexts\nProductGuids filter(entity == 'cr01c_product') ~> FilterProductGuids\nJoinTextTypeGuidstoProductTexts, FilterProductGuids join(ProductId == ProductGuids@extid,\n\tjoinType:'left',\n\tbroadcast: 'auto')~> JoinProductGuidstoProductTexts\ntmpProductTexts sink(input(\n\t\tId as integer,\n\t\tProductId as integer,\n\t\tProductTextTypeId as integer,\n\t\tDescription as string,\n\t\tProductTextTypeIdGUID as string,\n\t\tProductIdGUID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\ttruncate:true,\n\tformat: 'table',\n\tmapColumn(\n\t\tId,\n\t\tCreateTimeSpan,\n\t\tCreateUserId,\n\t\tIsDeleted,\n\t\tModifyTimeSpan,\n\t\tModifyUserId,\n\t\tProductId,\n\t\tProductTextTypeId,\n\t\tDescription,\n\t\tProductTextTypeIdGUID = ProductTextTypeGuid,\n\t\tProductIdGUID = ProductGuid\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> SinktmpProductTexts"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/tmpProductTexts')]"
+			]
 		}
 	]
 }

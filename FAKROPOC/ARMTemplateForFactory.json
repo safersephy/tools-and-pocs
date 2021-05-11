@@ -268,7 +268,14 @@
 					{
 						"name": "Bulk Delete ProductStatuses",
 						"type": "ExecutePipeline",
-						"dependsOn": [],
+						"dependsOn": [
+							{
+								"activity": "Bulk Delete Products",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
 						"userProperties": [],
 						"typeProperties": {
 							"pipeline": {
@@ -420,7 +427,14 @@
 					{
 						"name": "Bulk Delete ProductTypes",
 						"type": "ExecutePipeline",
-						"dependsOn": [],
+						"dependsOn": [
+							{
+								"activity": "Bulk Delete Products",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
 						"userProperties": [],
 						"typeProperties": {
 							"pipeline": {
@@ -528,7 +542,14 @@
 					{
 						"name": "Bulk Delete ProductTextTypes",
 						"type": "ExecutePipeline",
-						"dependsOn": [],
+						"dependsOn": [
+							{
+								"activity": "Bulk Delete ProductTexts",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
 						"userProperties": [],
 						"typeProperties": {
 							"pipeline": {
@@ -546,7 +567,7 @@
 						"type": "Copy",
 						"dependsOn": [
 							{
-								"activity": "Bulk Delete ProductTextTypes",
+								"activity": "Join GUIDs with Products",
 								"dependencyConditions": [
 									"Succeeded"
 								]
@@ -636,7 +657,14 @@
 					{
 						"name": "Bulk Delete ProductGroups",
 						"type": "ExecutePipeline",
-						"dependsOn": [],
+						"dependsOn": [
+							{
+								"activity": "Bulk Delete Products",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
 						"userProperties": [],
 						"typeProperties": {
 							"pipeline": {
@@ -951,17 +979,6 @@
 											"name": "cr01c_producttexttypeid",
 											"type": "Guid"
 										}
-									},
-									{
-										"source": {
-											"name": "ProductId",
-											"type": "Int32",
-											"physicalType": "int"
-										},
-										"sink": {
-											"name": "cr01c_producttexttypeidname",
-											"type": "String"
-										}
 									}
 								],
 								"typeConversion": true,
@@ -1218,7 +1235,7 @@
 									},
 									{
 										"source": {
-											"name": "cr01c_producttypeid",
+											"name": "cr01c_productgroupid",
 											"type": "Guid"
 										},
 										"sink": {
@@ -1249,7 +1266,7 @@
 						"type": "ExecuteDataFlow",
 						"dependsOn": [
 							{
-								"activity": "Get Statuses GUIDs",
+								"activity": "Get Groups GUIDs",
 								"dependencyConditions": [
 									"Succeeded"
 								]
@@ -1261,7 +1278,7 @@
 								]
 							},
 							{
-								"activity": "Get Groups GUIDs",
+								"activity": "Get Statuses GUIDs",
 								"dependencyConditions": [
 									"Succeeded"
 								]
@@ -1301,7 +1318,7 @@
 						"type": "Copy",
 						"dependsOn": [
 							{
-								"activity": "Bulk Delete Products",
+								"activity": "Join GUIDs with Products",
 								"dependencyConditions": [
 									"Succeeded"
 								]
@@ -1384,7 +1401,7 @@
 										},
 										"sink": {
 											"name": "cr01c_productstatusid",
-											"type": "String"
+											"type": "Guid"
 										}
 									},
 									{
@@ -1481,7 +1498,7 @@
 									},
 									{
 										"source": {
-											"name": "cr01c_producttypeid",
+											"name": "cr01c_productid",
 											"type": "Guid"
 										},
 										"sink": {
@@ -1512,7 +1529,7 @@
 						"type": "ExecutePipeline",
 						"dependsOn": [
 							{
-								"activity": "Join GUIDs with Products",
+								"activity": "Bulk Delete ProductTexts",
 								"dependencyConditions": [
 									"Succeeded"
 								]
@@ -1527,6 +1544,22 @@
 							"waitOnCompletion": true,
 							"parameters": {
 								"TablenameSingular": "cr01c_product"
+							}
+						}
+					},
+					{
+						"name": "Bulk Delete ProductTexts",
+						"type": "ExecutePipeline",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "Bulk Delete Dataverse Table",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {
+								"TablenameSingular": "cr01c_producttext"
 							}
 						}
 					}
@@ -2042,30 +2075,6 @@
 						"precision": 10
 					},
 					{
-						"name": "CreateTimeSpan",
-						"type": "datetime2",
-						"scale": 7
-					},
-					{
-						"name": "CreateUserId",
-						"type": "int",
-						"precision": 10
-					},
-					{
-						"name": "IsDeleted",
-						"type": "bit"
-					},
-					{
-						"name": "ModifyTimeSpan",
-						"type": "datetime2",
-						"scale": 7
-					},
-					{
-						"name": "ModifyUserId",
-						"type": "int",
-						"precision": 10
-					},
-					{
 						"name": "ProductCode",
 						"type": "nvarchar"
 					},
@@ -2092,10 +2101,6 @@
 						"name": "StatusId",
 						"type": "int",
 						"precision": 10
-					},
-					{
-						"name": "Rowversion",
-						"type": "timestamp"
 					},
 					{
 						"name": "ProductGroupIdGUID",
@@ -2133,30 +2138,6 @@
 				"schema": [
 					{
 						"name": "Id",
-						"type": "int",
-						"precision": 10
-					},
-					{
-						"name": "CreateTimeSpan",
-						"type": "datetime2",
-						"scale": 7
-					},
-					{
-						"name": "CreateUserId",
-						"type": "int",
-						"precision": 10
-					},
-					{
-						"name": "IsDeleted",
-						"type": "bit"
-					},
-					{
-						"name": "ModifyTimeSpan",
-						"type": "datetime2",
-						"scale": 7
-					},
-					{
-						"name": "ModifyUserId",
 						"type": "int",
 						"precision": 10
 					},
@@ -2295,7 +2276,7 @@
 							"name": "tmpProducts"
 						}
 					],
-					"script": "source(output(\n\t\tentity as string,\n\t\textid as integer,\n\t\tdvguid as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> ProductGroupsGUIDs\nsource(output(\n\t\tentity as string,\n\t\textid as integer,\n\t\tdvguid as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> ProductTypesGUIDs\nsource(output(\n\t\tentity as string,\n\t\textid as integer,\n\t\tdvguid as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> ProductStatusesGUIDs\nsource(output(\n\t\tId as integer,\n\t\tCreateTimeSpan as timestamp,\n\t\tCreateUserId as integer,\n\t\tIsDeleted as boolean,\n\t\tModifyTimeSpan as timestamp,\n\t\tModifyUserId as integer,\n\t\tProductCode as string,\n\t\tProductGroupId as integer,\n\t\tProductName as string,\n\t\tProductTypeId as integer,\n\t\tProductImageId as integer,\n\t\tStatusId as integer,\n\t\tRowversion as binary\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> SQLProduct\nProductGroupsGUIDs filter(entity == 'cr01c_productgroup') ~> FilterProductGroupGuids\nProductTypesGUIDs filter(entity == 'cr01c_producttype') ~> FilterProductTypeGuids\nProductStatusesGUIDs filter(entity == 'cr01c_productstatus') ~> FilterProductStatusesGuids\nFilterProductStatusesGuids, SQLProduct join(extid == StatusId,\n\tjoinType:'right',\n\tbroadcast: 'auto')~> JoinStatusesGuidstoProduct\nFilterProductTypeGuids, JoinStatusesGuidstoProduct join(ProductTypesGUIDs@extid == ProductTypeId,\n\tjoinType:'right',\n\tbroadcast: 'auto')~> JoinTypesGuidstoProduct\nFilterProductGroupGuids, JoinTypesGuidstoProduct join(ProductGroupsGUIDs@extid == ProductGroupId,\n\tjoinType:'right',\n\tbroadcast: 'auto')~> JoinGroupGuidstoProduct\nJoinGroupGuidstoProduct select(mapColumn(\n\t\tProductGroupsGUID = ProductGroupsGUIDs@dvguid,\n\t\tProductTypesGUID = ProductTypesGUIDs@dvguid,\n\t\tProductStatusesGUID = ProductStatusesGUIDs@dvguid,\n\t\tId,\n\t\tCreateTimeSpan,\n\t\tCreateUserId,\n\t\tIsDeleted,\n\t\tModifyTimeSpan,\n\t\tModifyUserId,\n\t\tProductCode,\n\t\tProductGroupId,\n\t\tProductName,\n\t\tProductTypeId,\n\t\tProductImageId,\n\t\tStatusId,\n\t\tRowversion\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> tmpProducts\ntmpProducts sink(input(\n\t\tId as integer,\n\t\tCreateTimeSpan as timestamp,\n\t\tCreateUserId as integer,\n\t\tIsDeleted as boolean,\n\t\tModifyTimeSpan as timestamp,\n\t\tModifyUserId as integer,\n\t\tProductCode as string,\n\t\tProductGroupId as integer,\n\t\tProductName as string,\n\t\tProductTypeId as integer,\n\t\tProductImageId as integer,\n\t\tStatusId as integer,\n\t\tRowversion as binary,\n\t\tProductGroupIdGUID as string,\n\t\tProductTypeIdGUID as string,\n\t\tStatusIdGUID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\ttruncate:true,\n\tformat: 'table',\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> sinktmpProducts"
+					"script": "source(output(\n\t\tentity as string,\n\t\textid as integer,\n\t\tdvguid as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> ProductGroupsGUIDs\nsource(output(\n\t\tentity as string,\n\t\textid as integer,\n\t\tdvguid as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> ProductTypesGUIDs\nsource(output(\n\t\tentity as string,\n\t\textid as integer,\n\t\tdvguid as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> ProductStatusesGUIDs\nsource(output(\n\t\tId as integer,\n\t\tCreateTimeSpan as timestamp,\n\t\tCreateUserId as integer,\n\t\tIsDeleted as boolean,\n\t\tModifyTimeSpan as timestamp,\n\t\tModifyUserId as integer,\n\t\tProductCode as string,\n\t\tProductGroupId as integer,\n\t\tProductName as string,\n\t\tProductTypeId as integer,\n\t\tProductImageId as integer,\n\t\tStatusId as integer,\n\t\tRowversion as binary\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> SQLProduct\nProductGroupsGUIDs filter(entity == 'cr01c_productgroup') ~> FilterProductGroupGuids\nProductTypesGUIDs filter(entity == 'cr01c_producttype') ~> FilterProductTypeGuids\nProductStatusesGUIDs filter(entity == 'cr01c_productstatus') ~> FilterProductStatusesGuids\nFilterProductStatusesGuids, SQLProduct join(extid == StatusId,\n\tjoinType:'right',\n\tbroadcast: 'auto')~> JoinStatusesGuidstoProduct\nFilterProductTypeGuids, JoinStatusesGuidstoProduct join(ProductTypesGUIDs@extid == ProductTypeId,\n\tjoinType:'right',\n\tbroadcast: 'auto')~> JoinTypesGuidstoProduct\nFilterProductGroupGuids, JoinTypesGuidstoProduct join(ProductGroupsGUIDs@extid == ProductGroupId,\n\tjoinType:'right',\n\tbroadcast: 'auto')~> JoinGroupGuidstoProduct\nJoinGroupGuidstoProduct select(mapColumn(\n\t\tProductGroupsGUID = ProductGroupsGUIDs@dvguid,\n\t\tProductTypesGUID = ProductTypesGUIDs@dvguid,\n\t\tProductStatusesGUID = ProductStatusesGUIDs@dvguid,\n\t\tId,\n\t\tCreateTimeSpan,\n\t\tCreateUserId,\n\t\tIsDeleted,\n\t\tModifyTimeSpan,\n\t\tModifyUserId,\n\t\tProductCode,\n\t\tProductGroupId,\n\t\tProductName,\n\t\tProductTypeId,\n\t\tProductImageId,\n\t\tStatusId,\n\t\tRowversion\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> tmpProducts\ntmpProducts sink(input(\n\t\tId as integer,\n\t\tProductCode as string,\n\t\tProductGroupId as integer,\n\t\tProductName as string,\n\t\tProductTypeId as integer,\n\t\tProductImageId as integer,\n\t\tStatusId as integer,\n\t\tProductGroupIdGUID as string,\n\t\tProductTypeIdGUID as string,\n\t\tStatusIdGUID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\ttruncate:true,\n\tformat: 'table',\n\tmapColumn(\n\t\tId,\n\t\tProductCode,\n\t\tProductGroupId,\n\t\tProductName,\n\t\tProductTypeId,\n\t\tProductImageId,\n\t\tStatusId,\n\t\tProductGroupIdGUID = ProductGroupsGUID,\n\t\tProductTypeIdGUID = ProductTypesGUID,\n\t\tStatusIdGUID = ProductStatusesGUID\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> sinktmpProducts"
 				}
 			},
 			"dependsOn": [
@@ -2360,7 +2341,7 @@
 							"name": "JoinProductGuidstoProductTexts"
 						}
 					],
-					"script": "source(output(\n\t\tentity as string,\n\t\textid as integer,\n\t\tdvguid as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> ProductTextTypeGuids\nsource(output(\n\t\tId as integer,\n\t\tCreateTimeSpan as timestamp,\n\t\tCreateUserId as integer,\n\t\tIsDeleted as boolean,\n\t\tModifyTimeSpan as timestamp,\n\t\tModifyUserId as integer,\n\t\tProductId as integer,\n\t\tProductTextTypeId as integer,\n\t\tDescription as string,\n\t\tRowversion as binary\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> SQLProductTexts\nsource(output(\n\t\tentity as string,\n\t\textid as integer,\n\t\tdvguid as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> ProductGuids\nProductTextTypeGuids filter(entity == 'cr01c_producttexttype') ~> FilterProductTextTypeGuids\nFilterProductTextTypeGuids, SQLProductTexts join(extid == ProductTextTypeId,\n\tjoinType:'right',\n\tbroadcast: 'auto')~> JoinTextTypeGuidstoProductTexts\nJoinProductGuidstoProductTexts select(mapColumn(\n\t\tProductTextTypeGuid = ProductTextTypeGuids@dvguid,\n\t\tId,\n\t\tCreateTimeSpan,\n\t\tCreateUserId,\n\t\tIsDeleted,\n\t\tModifyTimeSpan,\n\t\tModifyUserId,\n\t\tProductId,\n\t\tProductTextTypeId,\n\t\tDescription,\n\t\tRowversion,\n\t\tProductGuid = ProductGuids@dvguid\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> tmpProductTexts\nProductGuids filter(entity == 'cr01c_producttexttype') ~> FilterProductGuids\nJoinTextTypeGuidstoProductTexts, FilterProductGuids join(ProductId == ProductGuids@extid,\n\tjoinType:'left',\n\tbroadcast: 'auto')~> JoinProductGuidstoProductTexts\ntmpProductTexts sink(input(\n\t\tId as integer,\n\t\tCreateTimeSpan as timestamp,\n\t\tCreateUserId as integer,\n\t\tIsDeleted as boolean,\n\t\tModifyTimeSpan as timestamp,\n\t\tModifyUserId as integer,\n\t\tProductId as integer,\n\t\tProductTextTypeId as integer,\n\t\tDescription as string,\n\t\tProductTextTypeIdGUID as string,\n\t\tProductIdGUID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\ttruncate:true,\n\tformat: 'table',\n\tmapColumn(\n\t\tId,\n\t\tCreateTimeSpan,\n\t\tCreateUserId,\n\t\tIsDeleted,\n\t\tModifyTimeSpan,\n\t\tModifyUserId,\n\t\tProductId,\n\t\tProductTextTypeId,\n\t\tDescription,\n\t\tProductTextTypeIdGUID = ProductTextTypeGuid,\n\t\tProductIdGUID = ProductGuid\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> SinktmpProductTexts"
+					"script": "source(output(\n\t\tentity as string,\n\t\textid as integer,\n\t\tdvguid as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> ProductTextTypeGuids\nsource(output(\n\t\tId as integer,\n\t\tCreateTimeSpan as timestamp,\n\t\tCreateUserId as integer,\n\t\tIsDeleted as boolean,\n\t\tModifyTimeSpan as timestamp,\n\t\tModifyUserId as integer,\n\t\tProductId as integer,\n\t\tProductTextTypeId as integer,\n\t\tDescription as string,\n\t\tRowversion as binary\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> SQLProductTexts\nsource(output(\n\t\tentity as string,\n\t\textid as integer,\n\t\tdvguid as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> ProductGuids\nProductTextTypeGuids filter(entity == 'cr01c_producttexttype') ~> FilterProductTextTypeGuids\nFilterProductTextTypeGuids, SQLProductTexts join(extid == ProductTextTypeId,\n\tjoinType:'right',\n\tbroadcast: 'auto')~> JoinTextTypeGuidstoProductTexts\nJoinProductGuidstoProductTexts select(mapColumn(\n\t\tProductTextTypeGuid = ProductTextTypeGuids@dvguid,\n\t\tId,\n\t\tCreateTimeSpan,\n\t\tCreateUserId,\n\t\tIsDeleted,\n\t\tModifyTimeSpan,\n\t\tModifyUserId,\n\t\tProductId,\n\t\tProductTextTypeId,\n\t\tDescription,\n\t\tRowversion,\n\t\tProductGuid = ProductGuids@dvguid\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> tmpProductTexts\nProductGuids filter(entity == 'cr01c_product') ~> FilterProductGuids\nJoinTextTypeGuidstoProductTexts, FilterProductGuids join(ProductId == ProductGuids@extid,\n\tjoinType:'left',\n\tbroadcast: 'auto')~> JoinProductGuidstoProductTexts\ntmpProductTexts sink(input(\n\t\tId as integer,\n\t\tProductId as integer,\n\t\tProductTextTypeId as integer,\n\t\tDescription as string,\n\t\tProductTextTypeIdGUID as string,\n\t\tProductIdGUID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\ttruncate:true,\n\tformat: 'table',\n\tmapColumn(\n\t\tId,\n\t\tCreateTimeSpan,\n\t\tCreateUserId,\n\t\tIsDeleted,\n\t\tModifyTimeSpan,\n\t\tModifyUserId,\n\t\tProductId,\n\t\tProductTextTypeId,\n\t\tDescription,\n\t\tProductTextTypeIdGUID = ProductTextTypeGuid,\n\t\tProductIdGUID = ProductGuid\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> SinktmpProductTexts"
 				}
 			},
 			"dependsOn": [
