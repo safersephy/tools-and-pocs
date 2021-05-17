@@ -542,17 +542,6 @@
 						"mappings": [
 							{
 								"source": {
-									"name": "Description",
-									"type": "String",
-									"physicalType": "nvarchar"
-								},
-								"sink": {
-									"name": "cr01c_description",
-									"type": "String"
-								}
-							},
-							{
-								"source": {
 									"name": "Id",
 									"type": "Int32",
 									"physicalType": "int"
@@ -564,24 +553,46 @@
 							},
 							{
 								"source": {
-									"name": "ProductIdGUID",
-									"type": "Guid",
-									"physicalType": "uniqueidentifier"
+									"name": "Description",
+									"type": "String",
+									"physicalType": "nvarchar"
 								},
 								"sink": {
-									"name": "cr01c_productid",
-									"type": "Guid"
+									"name": "cr01c_description",
+									"type": "String"
 								}
 							},
 							{
 								"source": {
-									"name": "ProductTextTypeIdGUID",
-									"type": "Guid",
-									"physicalType": "uniqueidentifier"
+									"name": "ProductId",
+									"type": "Int32",
+									"physicalType": "int"
 								},
 								"sink": {
-									"name": "cr01c_producttexttypeid",
-									"type": "Guid"
+									"name": "cr01c_sync_productid",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "ProductTextTypeId",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "cr01c_sync_producttexttypeid",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "Description",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "cr01c_sync_producttexttypeid",
+									"type": "Int32"
 								}
 							}
 						],
