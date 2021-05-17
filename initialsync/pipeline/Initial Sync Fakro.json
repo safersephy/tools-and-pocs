@@ -300,7 +300,7 @@
 				"type": "Copy",
 				"dependsOn": [
 					{
-						"activity": "Join GUIDs with Products",
+						"activity": "Bulk Delete ProductTextTypes",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -499,7 +499,7 @@
 				]
 			},
 			{
-				"name": "Get TextType GUIDs",
+				"name": "Initial Sync ProductTexts",
 				"type": "Copy",
 				"dependsOn": [
 					{
@@ -507,124 +507,9 @@
 						"dependencyConditions": [
 							"Succeeded"
 						]
-					}
-				],
-				"policy": {
-					"timeout": "7.00:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"source": {
-						"type": "CommonDataServiceForAppsSource",
-						"additionalColumns": [
-							{
-								"name": "entity",
-								"value": "cr01c_producttexttype"
-							}
-						]
-					},
-					"sink": {
-						"type": "AzureSqlSink",
-						"preCopyScript": "DELETE FROM IdMapping WHERE entity = 'cr01c_producttexttype'",
-						"disableMetricsCollection": false
-					},
-					"enableStaging": false,
-					"translator": {
-						"type": "TabularTranslator",
-						"mappings": [
-							{
-								"source": {
-									"name": "entity",
-									"type": "String"
-								},
-								"sink": {
-									"name": "entity",
-									"type": "String"
-								}
-							},
-							{
-								"source": {
-									"name": "cr01c_id",
-									"type": "String"
-								},
-								"sink": {
-									"name": "extid",
-									"type": "Int32"
-								}
-							},
-							{
-								"source": {
-									"name": "cr01c_producttexttypeid",
-									"type": "Guid"
-								},
-								"sink": {
-									"name": "dvguid",
-									"type": "Guid"
-								}
-							}
-						]
-					}
-				},
-				"inputs": [
-					{
-						"referenceName": "DVProductTextTypes",
-						"type": "DatasetReference"
-					}
-				],
-				"outputs": [
-					{
-						"referenceName": "IdMapping",
-						"type": "DatasetReference"
-					}
-				]
-			},
-			{
-				"name": "Join GUIDs with ProductTexts",
-				"type": "ExecuteDataFlow",
-				"dependsOn": [
-					{
-						"activity": "Get TextType GUIDs",
-						"dependencyConditions": [
-							"Succeeded"
-						]
 					},
 					{
-						"activity": "Get Product GUIDs",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"policy": {
-					"timeout": "7.00:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"dataflow": {
-						"referenceName": "Join ProductTextType GUIDs with ProductTexts",
-						"type": "DataFlowReference"
-					},
-					"compute": {
-						"coreCount": 16,
-						"computeType": "General"
-					},
-					"traceLevel": "Fine"
-				}
-			},
-			{
-				"name": "Initial Sync ProductTexts",
-				"type": "Copy",
-				"dependsOn": [
-					{
-						"activity": "Join GUIDs with ProductTexts",
+						"activity": "Initial Sync Products",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -709,7 +594,7 @@
 				},
 				"inputs": [
 					{
-						"referenceName": "tmpProductTexts",
+						"referenceName": "SQLProductTexts",
 						"type": "DatasetReference"
 					}
 				],
@@ -721,7 +606,7 @@
 				]
 			},
 			{
-				"name": "Get Statuses GUIDs",
+				"name": "Initial Sync Products",
 				"type": "Copy",
 				"dependsOn": [
 					{
@@ -729,298 +614,15 @@
 						"dependencyConditions": [
 							"Succeeded"
 						]
-					}
-				],
-				"policy": {
-					"timeout": "7.00:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"source": {
-						"type": "CommonDataServiceForAppsSource",
-						"additionalColumns": [
-							{
-								"name": "entity",
-								"value": "cr01c_productstatus"
-							}
-						]
 					},
-					"sink": {
-						"type": "AzureSqlSink",
-						"preCopyScript": "DELETE FROM IdMapping WHERE entity = 'cr01c_productstatus'",
-						"disableMetricsCollection": false
-					},
-					"enableStaging": false,
-					"translator": {
-						"type": "TabularTranslator",
-						"mappings": [
-							{
-								"source": {
-									"name": "entity",
-									"type": "String"
-								},
-								"sink": {
-									"name": "entity",
-									"type": "String"
-								}
-							},
-							{
-								"source": {
-									"name": "cr01c_id",
-									"type": "String"
-								},
-								"sink": {
-									"name": "extid",
-									"type": "Int32"
-								}
-							},
-							{
-								"source": {
-									"name": "cr01c_productstatusid",
-									"type": "Guid"
-								},
-								"sink": {
-									"name": "dvguid",
-									"type": "Guid"
-								}
-							}
-						]
-					}
-				},
-				"inputs": [
-					{
-						"referenceName": "DVProductStatuses",
-						"type": "DatasetReference"
-					}
-				],
-				"outputs": [
-					{
-						"referenceName": "IdMapping",
-						"type": "DatasetReference"
-					}
-				]
-			},
-			{
-				"name": "Get Types GUIDs",
-				"type": "Copy",
-				"dependsOn": [
 					{
 						"activity": "Initial Sync ProductTypes",
 						"dependencyConditions": [
 							"Succeeded"
 						]
-					}
-				],
-				"policy": {
-					"timeout": "7.00:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"source": {
-						"type": "CommonDataServiceForAppsSource",
-						"additionalColumns": [
-							{
-								"name": "entity",
-								"value": "cr01c_producttype"
-							}
-						]
 					},
-					"sink": {
-						"type": "AzureSqlSink",
-						"preCopyScript": "DELETE FROM IdMapping WHERE entity = 'cr01c_producttype'",
-						"disableMetricsCollection": false
-					},
-					"enableStaging": false,
-					"translator": {
-						"type": "TabularTranslator",
-						"mappings": [
-							{
-								"source": {
-									"name": "entity",
-									"type": "String"
-								},
-								"sink": {
-									"name": "entity",
-									"type": "String"
-								}
-							},
-							{
-								"source": {
-									"name": "cr01c_id",
-									"type": "String"
-								},
-								"sink": {
-									"name": "extid",
-									"type": "Int32"
-								}
-							},
-							{
-								"source": {
-									"name": "cr01c_producttypeid",
-									"type": "Guid"
-								},
-								"sink": {
-									"name": "dvguid",
-									"type": "Guid"
-								}
-							}
-						]
-					}
-				},
-				"inputs": [
-					{
-						"referenceName": "DVProductTypes",
-						"type": "DatasetReference"
-					}
-				],
-				"outputs": [
-					{
-						"referenceName": "IdMapping",
-						"type": "DatasetReference"
-					}
-				]
-			},
-			{
-				"name": "Get Groups GUIDs",
-				"type": "Copy",
-				"dependsOn": [
 					{
 						"activity": "Initial Sync ProductGroups",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"policy": {
-					"timeout": "7.00:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"source": {
-						"type": "CommonDataServiceForAppsSource",
-						"additionalColumns": [
-							{
-								"name": "entity",
-								"value": "cr01c_productgroup"
-							}
-						]
-					},
-					"sink": {
-						"type": "AzureSqlSink",
-						"preCopyScript": "DELETE FROM IdMapping WHERE entity = 'cr01c_productgroup'",
-						"disableMetricsCollection": false
-					},
-					"enableStaging": false,
-					"translator": {
-						"type": "TabularTranslator",
-						"mappings": [
-							{
-								"source": {
-									"name": "entity",
-									"type": "String"
-								},
-								"sink": {
-									"name": "entity",
-									"type": "String"
-								}
-							},
-							{
-								"source": {
-									"name": "cr01c_id",
-									"type": "String"
-								},
-								"sink": {
-									"name": "extid",
-									"type": "Int32"
-								}
-							},
-							{
-								"source": {
-									"name": "cr01c_productgroupid",
-									"type": "Guid"
-								},
-								"sink": {
-									"name": "dvguid",
-									"type": "Guid"
-								}
-							}
-						]
-					}
-				},
-				"inputs": [
-					{
-						"referenceName": "DVProductGroups",
-						"type": "DatasetReference"
-					}
-				],
-				"outputs": [
-					{
-						"referenceName": "IdMapping",
-						"type": "DatasetReference"
-					}
-				]
-			},
-			{
-				"name": "Join GUIDs with Products",
-				"type": "ExecuteDataFlow",
-				"dependsOn": [
-					{
-						"activity": "Get Groups GUIDs",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					},
-					{
-						"activity": "Get Types GUIDs",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					},
-					{
-						"activity": "Get Statuses GUIDs",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"policy": {
-					"timeout": "7.00:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"dataflow": {
-						"referenceName": "Join GUIDs with Products",
-						"type": "DataFlowReference"
-					},
-					"compute": {
-						"coreCount": 8,
-						"computeType": "General"
-					},
-					"traceLevel": "Fine"
-				}
-			},
-			{
-				"name": "Initial Sync Products",
-				"type": "Copy",
-				"dependsOn": [
-					{
-						"activity": "Join GUIDs with Products",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -1075,17 +677,6 @@
 							},
 							{
 								"source": {
-									"name": "ProductGroupIdGUID",
-									"type": "Guid",
-									"physicalType": "uniqueidentifier"
-								},
-								"sink": {
-									"name": "cr01c_productgroupid",
-									"type": "Guid"
-								}
-							},
-							{
-								"source": {
 									"name": "ProductName",
 									"type": "String",
 									"physicalType": "nvarchar"
@@ -1097,24 +688,35 @@
 							},
 							{
 								"source": {
-									"name": "StatusIdGUID",
-									"type": "Guid",
-									"physicalType": "uniqueidentifier"
+									"name": "ProductGroupId",
+									"type": "Int32",
+									"physicalType": "int"
 								},
 								"sink": {
-									"name": "cr01c_productstatusid",
-									"type": "Guid"
+									"name": "cr01c_sync_productgroupid",
+									"type": "Int32"
 								}
 							},
 							{
 								"source": {
-									"name": "ProductTypeIdGUID",
-									"type": "Guid",
-									"physicalType": "uniqueidentifier"
+									"name": "ProductTypeId",
+									"type": "Int32",
+									"physicalType": "int"
 								},
 								"sink": {
-									"name": "cr01c_producttypeid",
-									"type": "Guid"
+									"name": "cr01c_sync_producttypeid",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "StatusId",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "cr01c_sync_productstatusid",
+									"type": "Int32"
 								}
 							}
 						],
@@ -1127,97 +729,13 @@
 				},
 				"inputs": [
 					{
-						"referenceName": "tmpProduct",
+						"referenceName": "SQLProduct",
 						"type": "DatasetReference"
 					}
 				],
 				"outputs": [
 					{
 						"referenceName": "DVProducts",
-						"type": "DatasetReference"
-					}
-				]
-			},
-			{
-				"name": "Get Product GUIDs",
-				"type": "Copy",
-				"dependsOn": [
-					{
-						"activity": "Initial Sync Products",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"policy": {
-					"timeout": "7.00:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"source": {
-						"type": "CommonDataServiceForAppsSource",
-						"additionalColumns": [
-							{
-								"name": "entity",
-								"value": "cr01c_product"
-							}
-						]
-					},
-					"sink": {
-						"type": "AzureSqlSink",
-						"preCopyScript": "DELETE FROM IdMapping WHERE entity = 'cr01c_product'",
-						"disableMetricsCollection": false
-					},
-					"enableStaging": false,
-					"translator": {
-						"type": "TabularTranslator",
-						"mappings": [
-							{
-								"source": {
-									"name": "entity",
-									"type": "String"
-								},
-								"sink": {
-									"name": "entity",
-									"type": "String"
-								}
-							},
-							{
-								"source": {
-									"name": "cr01c_id",
-									"type": "String"
-								},
-								"sink": {
-									"name": "extid",
-									"type": "Int32"
-								}
-							},
-							{
-								"source": {
-									"name": "cr01c_productid",
-									"type": "Guid"
-								},
-								"sink": {
-									"name": "dvguid",
-									"type": "Guid"
-								}
-							}
-						]
-					}
-				},
-				"inputs": [
-					{
-						"referenceName": "DVProducts",
-						"type": "DatasetReference"
-					}
-				],
-				"outputs": [
-					{
-						"referenceName": "IdMapping",
 						"type": "DatasetReference"
 					}
 				]
