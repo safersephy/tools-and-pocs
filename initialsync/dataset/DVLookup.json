@@ -1,0 +1,12 @@
+{
+	"name": "DVLookup",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "FAKROPOCDV",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "CommonDataServiceForAppsEntity",
+		"schema": []
+	}
+}
