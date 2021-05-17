@@ -583,17 +583,6 @@
 									"name": "cr01c_sync_producttexttypeid",
 									"type": "Int32"
 								}
-							},
-							{
-								"source": {
-									"name": "Description",
-									"type": "String",
-									"physicalType": "nvarchar"
-								},
-								"sink": {
-									"name": "cr01c_sync_producttexttypeid",
-									"type": "Int32"
-								}
 							}
 						],
 						"typeConversion": true,
