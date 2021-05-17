@@ -840,8 +840,7 @@
 									"name": "cr01c_productstatusid",
 									"type": "Guid"
 								}
-							},
-							null
+							}
 						]
 					}
 				},
