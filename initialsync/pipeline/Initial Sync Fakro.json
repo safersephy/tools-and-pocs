@@ -766,7 +766,14 @@
 			{
 				"name": "Bulk Delete ProductTexts",
 				"type": "ExecutePipeline",
-				"dependsOn": [],
+				"dependsOn": [
+					{
+						"activity": "Set Relations Product",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"userProperties": [],
 				"typeProperties": {
 					"pipeline": {
@@ -782,14 +789,7 @@
 			{
 				"name": "Set Relations Product",
 				"type": "Copy",
-				"dependsOn": [
-					{
-						"activity": "Initial Sync ProductTexts",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
+				"dependsOn": [],
 				"policy": {
 					"timeout": "7.00:00:00",
 					"retry": 0,
@@ -826,11 +826,31 @@
 							},
 							{
 								"source": {
+									"name": "cr01c_productgroupid",
+									"type": "Guid"
+								},
+								"sink": {
+									"name": "cr01c_productgroupid",
+									"type": "Guid"
+								}
+							},
+							{
+								"source": {
 									"name": "cr01c_productstatusid",
 									"type": "Guid"
 								},
 								"sink": {
 									"name": "cr01c_productstatusid",
+									"type": "Guid"
+								}
+							},
+							{
+								"source": {
+									"name": "cr01c_producttypeid",
+									"type": "Guid"
+								},
+								"sink": {
+									"name": "cr01c_producttypeid",
 									"type": "Guid"
 								}
 							}
