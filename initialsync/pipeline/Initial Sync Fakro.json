@@ -952,6 +952,12 @@
 				]
 			}
 		],
+		"parameters": {
+			"BulkDelete": {
+				"type": "bool",
+				"defaultValue": false
+			}
+		},
 		"annotations": []
 	}
 }
