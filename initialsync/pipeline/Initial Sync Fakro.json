@@ -5,7 +5,14 @@
 			{
 				"name": "Initial Sync ProductStatuses",
 				"type": "Copy",
-				"dependsOn": [],
+				"dependsOn": [
+					{
+						"activity": "Check Bulkdelete parameter",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"policy": {
 					"timeout": "7.00:00:00",
 					"retry": 0,
@@ -132,7 +139,14 @@
 			{
 				"name": "Initial Sync ProductTypes",
 				"type": "Copy",
-				"dependsOn": [],
+				"dependsOn": [
+					{
+						"activity": "Check Bulkdelete parameter",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"policy": {
 					"timeout": "7.00:00:00",
 					"retry": 0,
@@ -298,7 +312,14 @@
 			{
 				"name": "Initial Sync ProductGroups",
 				"type": "Copy",
-				"dependsOn": [],
+				"dependsOn": [
+					{
+						"activity": "Check Bulkdelete parameter",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"policy": {
 					"timeout": "7.00:00:00",
 					"retry": 0,
@@ -793,7 +814,7 @@
 				]
 			},
 			{
-				"name": "If Condition1",
+				"name": "Check Bulkdelete parameter",
 				"type": "IfCondition",
 				"dependsOn": [],
 				"userProperties": [],
