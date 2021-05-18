@@ -766,7 +766,14 @@
 			{
 				"name": "Bulk Delete ProductTexts",
 				"type": "ExecutePipeline",
-				"dependsOn": [],
+				"dependsOn": [
+					{
+						"activity": "Set Relations Product_copy1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"userProperties": [],
 				"typeProperties": {
 					"pipeline": {
@@ -873,14 +880,7 @@
 			{
 				"name": "Set Relations Product_copy1",
 				"type": "Copy",
-				"dependsOn": [
-					{
-						"activity": "Set Relations Product",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
+				"dependsOn": [],
 				"policy": {
 					"timeout": "7.00:00:00",
 					"retry": 0,
