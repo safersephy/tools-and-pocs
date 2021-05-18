@@ -3,39 +3,9 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "Bulk Delete ProductStatuses",
-				"type": "ExecutePipeline",
-				"dependsOn": [
-					{
-						"activity": "Bulk Delete Products",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"userProperties": [],
-				"typeProperties": {
-					"pipeline": {
-						"referenceName": "Bulk Delete Dataverse Table",
-						"type": "PipelineReference"
-					},
-					"waitOnCompletion": true,
-					"parameters": {
-						"TablenameSingular": "cr01c_productstatus"
-					}
-				}
-			},
-			{
 				"name": "Initial Sync ProductStatuses",
 				"type": "Copy",
-				"dependsOn": [
-					{
-						"activity": "Bulk Delete ProductStatuses",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
+				"dependsOn": [],
 				"policy": {
 					"timeout": "7.00:00:00",
 					"retry": 0,
@@ -160,39 +130,9 @@
 				]
 			},
 			{
-				"name": "Bulk Delete ProductTypes",
-				"type": "ExecutePipeline",
-				"dependsOn": [
-					{
-						"activity": "Bulk Delete Products",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"userProperties": [],
-				"typeProperties": {
-					"pipeline": {
-						"referenceName": "Bulk Delete Dataverse Table",
-						"type": "PipelineReference"
-					},
-					"waitOnCompletion": true,
-					"parameters": {
-						"TablenameSingular": "cr01c_producttype"
-					}
-				}
-			},
-			{
 				"name": "Initial Sync ProductTypes",
 				"type": "Copy",
-				"dependsOn": [
-					{
-						"activity": "Bulk Delete ProductTypes",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
+				"dependsOn": [],
 				"policy": {
 					"timeout": "7.00:00:00",
 					"retry": 0,
@@ -273,39 +213,9 @@
 				]
 			},
 			{
-				"name": "Bulk Delete ProductTextTypes",
-				"type": "ExecutePipeline",
-				"dependsOn": [
-					{
-						"activity": "Bulk Delete ProductTexts",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"userProperties": [],
-				"typeProperties": {
-					"pipeline": {
-						"referenceName": "Bulk Delete Dataverse Table",
-						"type": "PipelineReference"
-					},
-					"waitOnCompletion": true,
-					"parameters": {
-						"TablenameSingular": "cr01c_producttexttype"
-					}
-				}
-			},
-			{
 				"name": "Initial Sync ProductTextTypes",
 				"type": "Copy",
-				"dependsOn": [
-					{
-						"activity": "Bulk Delete ProductTextTypes",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
+				"dependsOn": [],
 				"policy": {
 					"timeout": "7.00:00:00",
 					"retry": 0,
@@ -386,39 +296,9 @@
 				]
 			},
 			{
-				"name": "Bulk Delete ProductGroups",
-				"type": "ExecutePipeline",
-				"dependsOn": [
-					{
-						"activity": "Bulk Delete Products",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"userProperties": [],
-				"typeProperties": {
-					"pipeline": {
-						"referenceName": "Bulk Delete Dataverse Table",
-						"type": "PipelineReference"
-					},
-					"waitOnCompletion": true,
-					"parameters": {
-						"TablenameSingular": "cr01c_productgroup"
-					}
-				}
-			},
-			{
 				"name": "Initial Sync ProductGroups",
 				"type": "Copy",
-				"dependsOn": [
-					{
-						"activity": "Bulk Delete ProductGroups",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
+				"dependsOn": [],
 				"policy": {
 					"timeout": "7.00:00:00",
 					"retry": 0,
@@ -741,45 +621,6 @@
 				]
 			},
 			{
-				"name": "Bulk Delete Products",
-				"type": "ExecutePipeline",
-				"dependsOn": [
-					{
-						"activity": "Bulk Delete ProductTexts",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"userProperties": [],
-				"typeProperties": {
-					"pipeline": {
-						"referenceName": "Bulk Delete Dataverse Table",
-						"type": "PipelineReference"
-					},
-					"waitOnCompletion": true,
-					"parameters": {
-						"TablenameSingular": "cr01c_product"
-					}
-				}
-			},
-			{
-				"name": "Bulk Delete ProductTexts",
-				"type": "ExecutePipeline",
-				"dependsOn": [],
-				"userProperties": [],
-				"typeProperties": {
-					"pipeline": {
-						"referenceName": "Bulk Delete Dataverse Table",
-						"type": "PipelineReference"
-					},
-					"waitOnCompletion": true,
-					"parameters": {
-						"TablenameSingular": "cr01c_producttext"
-					}
-				}
-			},
-			{
 				"name": "Set Relations Product",
 				"type": "Copy",
 				"dependsOn": [
@@ -950,6 +791,151 @@
 						"type": "DatasetReference"
 					}
 				]
+			},
+			{
+				"name": "If Condition1",
+				"type": "IfCondition",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@pipeline().parameters.BulkDelete",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "Bulk Delete ProductStatuses",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "Bulk Delete Products",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "Bulk Delete Dataverse Table",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"TablenameSingular": "cr01c_productstatus"
+								}
+							}
+						},
+						{
+							"name": "Bulk Delete ProductTypes",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "Bulk Delete Products",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "Bulk Delete Dataverse Table",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"TablenameSingular": "cr01c_producttype"
+								}
+							}
+						},
+						{
+							"name": "Bulk Delete ProductGroups",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "Bulk Delete Products",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "Bulk Delete Dataverse Table",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"TablenameSingular": "cr01c_productgroup"
+								}
+							}
+						},
+						{
+							"name": "Bulk Delete Products",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "Bulk Delete ProductTexts",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "Bulk Delete Dataverse Table",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"TablenameSingular": "cr01c_product"
+								}
+							}
+						},
+						{
+							"name": "Bulk Delete ProductTexts",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "Bulk Delete Dataverse Table",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"TablenameSingular": "cr01c_producttext"
+								}
+							}
+						},
+						{
+							"name": "Bulk Delete ProductTextTypes",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "Bulk Delete ProductTexts",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "Bulk Delete Dataverse Table",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"TablenameSingular": "cr01c_producttexttype"
+								}
+							}
+						}
+					]
+				}
 			}
 		],
 		"parameters": {
