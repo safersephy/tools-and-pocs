@@ -766,14 +766,7 @@
 			{
 				"name": "Bulk Delete ProductTexts",
 				"type": "ExecutePipeline",
-				"dependsOn": [
-					{
-						"activity": "Set Relations Product",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
+				"dependsOn": [],
 				"userProperties": [],
 				"typeProperties": {
 					"pipeline": {
@@ -789,7 +782,14 @@
 			{
 				"name": "Set Relations Product",
 				"type": "Copy",
-				"dependsOn": [],
+				"dependsOn": [
+					{
+						"activity": "Initial Sync ProductTexts",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"policy": {
 					"timeout": "7.00:00:00",
 					"retry": 0,
@@ -866,6 +866,87 @@
 				"outputs": [
 					{
 						"referenceName": "DVProducts",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Set Relations Product_copy1",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Set Relations Product",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "CommonDataServiceForAppsSource",
+						"query": "<fetch version=\"1.0\">\n<entity name = \"cr01c_producttext\">\n<attribute name = \"cr01c_id\" />\n<attribute name = \"cr01c_sync_productid\" />\n<link-entity name=\"cr01c_product\" from=\"cr01c_id\" to=\"cr01c_sync_productid\" alias=\"P\">\n<attribute name = \"cr01c_productid\" alias = \"cr01c_productid\" />\n</link-entity>\n<attribute name = \"cr01c_sync_producttexttypeid\" />\n<link-entity name=\"cr01c_producttexttype\" from=\"cr01c_id\" to=\"cr01c_sync_producttexttypeid\" alias=\"T\">\n<attribute name = \"cr01c_producttexttypeid\" alias = \"cr01c_producttexttypeid\" />\n</link-entity>\n</entity>\n</fetch> "
+					},
+					"sink": {
+						"type": "CommonDataServiceForAppsSink",
+						"writeBatchSize": 10,
+						"writeBehavior": "upsert",
+						"ignoreNullValues": false,
+						"alternateKeyName": "cr01c_id"
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "cr01c_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "cr01c_id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "cr01c_productid",
+									"type": "Guid"
+								},
+								"sink": {
+									"name": "cr01c_productid",
+									"type": "Guid"
+								}
+							},
+							{
+								"source": {
+									"name": "cr01c_producttexttypeid",
+									"type": "Guid"
+								},
+								"sink": {
+									"name": "cr01c_producttexttypeid",
+									"type": "Guid"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "DVLookup",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DVProductTexts",
 						"type": "DatasetReference"
 					}
 				]
