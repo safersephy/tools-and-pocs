@@ -2,7 +2,7 @@
 	"name": "DVProductTextTypes",
 	"properties": {
 		"linkedServiceName": {
-			"referenceName": "FAKROPOCDV",
+			"referenceName": "SIENNDEMODEV",
 			"type": "LinkedServiceReference"
 		},
 		"annotations": [],
