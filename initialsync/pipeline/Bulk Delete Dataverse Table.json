@@ -207,7 +207,7 @@
 			},
 			"AuthRequestBody": {
 				"type": "String",
-				"defaultValue": "client_id=353fa32d-a5d9-48f7-a5b7-6a8f69108e3f&grant_type=client_credentials&redirect_uri=https%3A%2F%2Fadf.azure.com%2F&resource=https%3A%2F%2Fpocfakro.crm4.dynamics.com%2F&client_secret=e5sY145YJ0ga7.y4Ysk~-_JMjzX_d08UkZ"
+				"defaultValue": "client_id=353fa32d-a5d9-48f7-a5b7-6a8f69108e3f&grant_type=client_credentials&redirect_uri=https%3A%2F%2Fadf.azure.com%2F&resource=https%3A%2F%2Fsienndemodev.crm4.dynamics.com%2F&client_secret=e5sY145YJ0ga7.y4Ysk~-_JMjzX_d08UkZ"
 			},
 			"DeleteJobId": {
 				"type": "String",
@@ -223,7 +223,7 @@
 			},
 			"Dataverse Environment": {
 				"type": "String",
-				"defaultValue": "https://pocfakro.crm4.dynamics.com/"
+				"defaultValue": "https://sienndemodev.crm4.dynamics.com/"
 			}
 		},
 		"annotations": [],
