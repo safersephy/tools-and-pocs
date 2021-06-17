@@ -9,8 +9,8 @@
 			"serviceUri": "https://sienndemodev.crm4.dynamics.com/",
 			"authenticationType": "AADServicePrincipal",
 			"servicePrincipalCredentialType": "ServicePrincipalKey",
-			"servicePrincipalId": "e",
-			"encryptedCredential": "ew0KICAiVmVyc2lvbiI6ICIyMDE3LTExLTMwIiwNCiAgIlByb3RlY3Rpb25Nb2RlIjogIktleSIsDQogICJTZWNyZXRDb250ZW50VHlwZSI6ICJQbGFpbnRleHQiLA0KICAiQ3JlZGVudGlhbElkIjogIkZBS1JPUE9DXzJhMTU5OGMwLWE4ZDItNGE3Ny05MjRhLWZiNmJlNzlhYzUzOSINCn0="
+			"servicePrincipalId": "353fa32d-a5d9-48f7-a5b7-6a8f69108e3f",
+			"encryptedCredential": "ew0KICAiVmVyc2lvbiI6ICIyMDE3LTExLTMwIiwNCiAgIlByb3RlY3Rpb25Nb2RlIjogIktleSIsDQogICJTZWNyZXRDb250ZW50VHlwZSI6ICJQbGFpbnRleHQiLA0KICAiQ3JlZGVudGlhbElkIjogIkZBS1JPUE9DXzM3M2RiNGY2LWIxMTMtNDdmZi1hZThkLWQ3NTc3YmU5ODliYSINCn0="
 		}
 	}
 }
