@@ -21,7 +21,13 @@
 						"partitionOption": "None"
 					},
 					"sink": {
-						"type": "AzureSqlSink",
+						"type": "ParquetSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "ParquetWriteSettings"
+						},
 						"writeBehavior": "insert"
 					},
 					"enableStaging": false,
@@ -42,7 +48,7 @@
 				],
 				"outputs": [
 					{
-						"referenceName": "customersink",
+						"referenceName": "Parquet1",
 						"type": "DatasetReference"
 					}
 				]
