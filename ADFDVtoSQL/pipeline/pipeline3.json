@@ -1,0 +1,118 @@
+{
+	"name": "pipeline3",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy CSV 2 Query",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Copy LB180",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "OdbcSource",
+						"query": "SELECT AL1.\"cdorder\", AL1.\"cddeb\", AL1.\"opm-30\", AL3.\"cdorg-afl\", AL4.\"naamorg\", AL3.\"cdverzendwijze\", AL6.\"cdprodukt\", AL6.\"aantal\", AL3.\"id-cdads-afl\", AL7.\"licenseplate\" FROM \"PUB\".\"va-210\" AL1, \"PUB\".\"lb-192\" AL2, \"PUB\".\"la-611\" AL5, \"PUB\".\"lb-186\" AL6, \"PUB\".\"lk-100\" AL7, \"PUB\".\"la-610\" AL3 LEFT OUTER JOIN \"PUB\".\"ba-001\" AL4 ON (AL3.\"cdorg-afl\"=AL4.\"cdorg\") WHERE (AL2.\"cdadmin\"=AL1.\"cdadmin\" AND AL1.\"cdorder\"=AL2.\"cdorder\" AND AL3.\"cdadmin\"=AL5.\"cdadmin\" AND AL5.\"cdzending\"=AL3.\"cdzending\" AND AL5.\"cdadmin\"=AL6.\"cdadmin\" AND AL6.\"cdadmin\"=AL2.\"cdadmin\" AND AL2.\"nrpakbon\"=AL6.\"nrpakbon\" AND AL5.\"nrpakbon\"=AL6.\"nrpakbon\" AND AL2.\"rglpakbon\"=AL6.\"rglpakbon\" AND AL3.\"cdadmin\"=AL7.\"cdadmin\" AND AL3.\"cdzending\"=AL7.\"nrmutatie\")  AND ((AL1.\"cddeb\"='203302' AND AL1.\"cdadmin\"='10' AND AL3.\"datum-verz\" >= { fn CURDATE()} - 2 AND AL7.\"cdstatus\"='LABL'))",
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "OdbcTable1",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DelimitedText1",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Copy LB180",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "OdbcSource",
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "OdbcTable2",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DelimitedText2",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"annotations": []
+	}
+}

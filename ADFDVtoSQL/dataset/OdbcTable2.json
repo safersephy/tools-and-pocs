@@ -1,0 +1,15 @@
+{
+	"name": "OdbcTable2",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "Odbc1",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "OdbcTable",
+		"schema": [],
+		"typeProperties": {
+			"tableName": "\"PUB\".\"lb-180\""
+		}
+	}
+}
