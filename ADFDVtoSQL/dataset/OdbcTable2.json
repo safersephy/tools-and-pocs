@@ -9,7 +9,7 @@
 		"type": "OdbcTable",
 		"schema": [],
 		"typeProperties": {
-			"tableName": "\"PUB\".\"lb-180\""
+			"tableName": "\"PUB\".\"va-210\""
 		}
 	}
 }
