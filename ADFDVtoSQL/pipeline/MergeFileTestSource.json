@@ -52,7 +52,17 @@
 				"outputs": [
 					{
 						"referenceName": "MergeTestSink",
-						"type": "DatasetReference"
+						"type": "DatasetReference",
+						"parameters": {
+							"debtorcode": {
+								"value": "@variables('debtorcode')",
+								"type": "Expression"
+							},
+							"filenametick": {
+								"value": "@variables('filenametick')",
+								"type": "Expression"
+							}
+						}
 					}
 				]
 			}
