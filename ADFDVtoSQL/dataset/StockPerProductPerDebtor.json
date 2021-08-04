@@ -1,0 +1,36 @@
+{
+	"name": "StockPerProductPerDebtor",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "NautaDataLake",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"debtorcode": {
+				"type": "string",
+				"defaultValue": "0"
+			},
+			"filenametick": {
+				"type": "string",
+				"defaultValue": "0"
+			},
+			"productcode": {
+				"type": "string",
+				"defaultValue": "0"
+			}
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": {
+					"value": "@{dataset().debtorcode}/@{dataset().filenametick}",
+					"type": "Expression"
+				},
+				"fileSystem": "csvexport"
+			}
+		},
+		"schema": {}
+	}
+}
