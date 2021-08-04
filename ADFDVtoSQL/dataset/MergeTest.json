@@ -2,7 +2,7 @@
 	"name": "MergeTest",
 	"properties": {
 		"linkedServiceName": {
-			"referenceName": "NautaDataLake",
+			"referenceName": "NautaDataLakeIR",
 			"type": "LinkedServiceReference"
 		},
 		"annotations": [],

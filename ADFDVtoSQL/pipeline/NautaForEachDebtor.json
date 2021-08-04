@@ -19,6 +19,7 @@
 						"value": "@activity('Get Debtors').output.value",
 						"type": "Expression"
 					},
+					"isSequential": false,
 					"activities": [
 						{
 							"name": "Get Raw productlist per Debtor",
@@ -100,7 +101,7 @@
 							"typeProperties": {
 								"variableName": "File Name Tick",
 								"value": {
-									"value": "@ticks(utcnow())",
+									"value": "@string(ticks(utcnow()))",
 									"type": "Expression"
 								}
 							}
@@ -133,6 +134,57 @@
 										"type": "Expression"
 									}
 								}
+							}
+						},
+						{
+							"name": "Merge Stockfile",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "Get Stock for products",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "MergeStock",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true
+							}
+						},
+						{
+							"name": "CookDebtorStockCSV",
+							"type": "ExecuteDataFlow",
+							"dependsOn": [
+								{
+									"activity": "Merge Stockfile",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "1.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataflow": {
+									"referenceName": "NautaCookDebtorStockCSV",
+									"type": "DataFlowReference"
+								},
+								"compute": {
+									"coreCount": 8,
+									"computeType": "General"
+								},
+								"traceLevel": "Fine"
 							}
 						}
 					]
