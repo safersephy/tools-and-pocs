@@ -24,6 +24,10 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "@{dataset().productcode}.csv",
+					"type": "Expression"
+				},
 				"folderPath": {
 					"value": "@{dataset().debtorcode}/@{dataset().filenametick}",
 					"type": "Expression"
