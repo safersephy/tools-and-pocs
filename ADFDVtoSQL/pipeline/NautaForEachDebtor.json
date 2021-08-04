@@ -23,7 +23,14 @@
 						{
 							"name": "ExportStock",
 							"type": "ExecutePipeline",
-							"dependsOn": [],
+							"dependsOn": [
+								{
+									"activity": "Get Raw productlist per Debtor",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
 							"userProperties": [],
 							"typeProperties": {
 								"pipeline": {
@@ -32,6 +39,61 @@
 								},
 								"waitOnCompletion": true
 							}
+						},
+						{
+							"name": "Get Raw productlist per Debtor",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "OdbcSource",
+									"query": {
+										"value": "SELECT\nCollectionListUsage.\"cdcollijst\",\nCollectionListUsage.\"cddeb\",\nCollectionListLines.\"cdprodukt\",\nCollectionListLines.\"cdstandeenhd\",\nProducts.\"Omschr-35\",\nProductUnits.\"cduac\",\nSubstr(AssortmentProducts.\"cdblok\", 2, 1) Depricated,\nSubstr(AssortmentProducts.\"cdblok\", 7, 1) Blocked\nFROM\n\"PUB\".\"lb-202\" CollectionListUsage,\n\"PUB\".\"lb-203\" CollectionListLines,\n\"PUB\".\"bb-040\" Products,\n\"PUB\".\"lb-180\" AssortmentProducts,\n\"PUB\".\"bb-051\" ProductUnits\nWHERE\nCollectionListUsage.\"cdadmin\" = '10' AND AssortmentProducts.\"cdadmin\" = '10'\nAND CollectionListUsage.\"cdcollijst\" = CollectionListLines.\"cdcollijst\"\nAND CollectionListLines.\"cdprodukt\" = Products.\"cdprodukt\"\nAND CollectionListLines.\"cdstandeenhd\" = ProductUnits.\"cdstandeenhd\"\nAND CollectionListLines.\"cdprodukt\" = ProductUnits.\"cdprodukt\"\nAND CollectionListLines.\"cdstandeenhd\" = AssortmentProducts.\"cdstandeenhd\"\nAND CollectionListLines.\"cdprodukt\" = AssortmentProducts.\"cdprodukt\"\nAND CollectionListUsage.\"cddeb\" = @{item().debtorcode}",
+										"type": "Expression"
+									},
+									"queryTimeout": "02:00:00"
+								},
+								"sink": {
+									"type": "DelimitedTextSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "DelimitedTextWriteSettings",
+										"quoteAllText": true,
+										"fileExtension": ".txt"
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "ODBCQueryDataSet",
+									"type": "DatasetReference"
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "RawStockCSVDataset",
+									"type": "DatasetReference"
+								}
+							]
 						}
 					]
 				}

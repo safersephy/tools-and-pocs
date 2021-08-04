@@ -17,7 +17,10 @@
 			"location": {
 				"type": "AzureBlobFSLocation",
 				"fileName": "va210.csv",
-				"folderPath": "test",
+				"folderPath": {
+					"value": "@dataset().debtorcode",
+					"type": "Expression"
+				},
 				"fileSystem": "csvexport"
 			},
 			"columnDelimiter": ",",
