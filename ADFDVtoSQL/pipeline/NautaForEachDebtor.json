@@ -16,7 +16,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"items": {
-						"value": "@activity('Get Debtors').output",
+						"value": "@activity('Get Debtors').output.value",
 						"type": "Expression"
 					},
 					"activities": [
@@ -70,7 +70,7 @@
 							],
 							"outputs": [
 								{
-									"referenceName": "RawStockCSVDataset",
+									"referenceName": "RawStockCSV",
 									"type": "DatasetReference",
 									"parameters": {
 										"debtorcode": {

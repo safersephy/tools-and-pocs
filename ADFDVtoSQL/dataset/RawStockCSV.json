@@ -16,6 +16,10 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "@{utcnow('yyyy-MM-dd')}stockraw.csv",
+					"type": "Expression"
+				},
 				"folderPath": {
 					"value": "@dataset().debtorcode",
 					"type": "Expression"
@@ -24,6 +28,7 @@
 			},
 			"columnDelimiter": ",",
 			"escapeChar": "\\",
+			"firstRowAsHeader": true,
 			"quoteChar": "\""
 		},
 		"schema": []
