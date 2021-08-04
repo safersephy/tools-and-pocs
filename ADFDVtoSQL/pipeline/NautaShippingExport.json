@@ -101,7 +101,7 @@
 				},
 				"inputs": [
 					{
-						"referenceName": "OdbcTable2",
+						"referenceName": "ODBCQueryDataSet",
 						"type": "DatasetReference"
 					}
 				],
