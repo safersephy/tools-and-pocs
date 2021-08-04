@@ -5,13 +5,26 @@
 			"referenceName": "NautaDataLake",
 			"type": "LinkedServiceReference"
 		},
+		"parameters": {
+			"debtorcode": {
+				"type": "string",
+				"defaultValue": "321197"
+			},
+			"filenametick": {
+				"type": "string",
+				"defaultValue": "637636856972825204"
+			}
+		},
 		"annotations": [],
 		"type": "Json",
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobFSLocation",
 				"fileName": "stock.json",
-				"folderPath": "321197/637636856972825204/merged",
+				"folderPath": {
+					"value": "@{dataset().debtorcode}/@{dataset().filenametick}/merged",
+					"type": "Expression"
+				},
 				"fileSystem": "csvexport"
 			}
 		},
