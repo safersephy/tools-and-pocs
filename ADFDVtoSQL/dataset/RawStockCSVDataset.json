@@ -16,7 +16,10 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobFSLocation",
-				"fileName": "va210.csv",
+				"fileName": {
+					"value": "@{utcnow('yyyy-MM-dd')}stock.csv",
+					"type": "Expression"
+				},
 				"folderPath": {
 					"value": "@dataset().debtorcode",
 					"type": "Expression"
