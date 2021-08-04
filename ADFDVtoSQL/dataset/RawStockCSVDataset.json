@@ -17,7 +17,7 @@
 			"location": {
 				"type": "AzureBlobFSLocation",
 				"fileName": {
-					"value": "@{utcnow('yyyy-MM-dd')}stock.csv",
+					"value": "@{utcnow('yyyy-MM-dd')}stockraw.csv",
 					"type": "Expression"
 				},
 				"folderPath": {
