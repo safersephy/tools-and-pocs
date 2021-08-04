@@ -104,6 +104,36 @@
 									"type": "Expression"
 								}
 							}
+						},
+						{
+							"name": "Get Stock for products",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "Get Raw productlist per Debtor",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "Nauta Get Stock",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"debtorcode": {
+										"value": "@item().debtorcode",
+										"type": "Expression"
+									},
+									"filenametick": {
+										"value": "@variables('File Name Tick')",
+										"type": "Expression"
+									}
+								}
+							}
 						}
 					]
 				}
