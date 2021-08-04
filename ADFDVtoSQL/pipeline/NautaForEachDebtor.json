@@ -3,7 +3,7 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "ForEach1",
+				"name": "Loop through Debtors",
 				"type": "ForEach",
 				"dependsOn": [
 					{
@@ -23,7 +23,14 @@
 						{
 							"name": "Get Raw productlist per Debtor",
 							"type": "Copy",
-							"dependsOn": [],
+							"dependsOn": [
+								{
+									"activity": "Set File Name Tick",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
 							"policy": {
 								"timeout": "7.00:00:00",
 								"retry": 0,
@@ -76,10 +83,27 @@
 										"debtorcode": {
 											"value": "@item().debtorcode",
 											"type": "Expression"
+										},
+										"filenametick": {
+											"value": "@variables('File Name Tick')",
+											"type": "Expression"
 										}
 									}
 								}
 							]
+						},
+						{
+							"name": "Set File Name Tick",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "File Name Tick",
+								"value": {
+									"value": "@ticks(utcnow())",
+									"type": "Expression"
+								}
+							}
 						}
 					]
 				}
@@ -116,6 +140,12 @@
 				}
 			}
 		],
+		"variables": {
+			"File Name Tick": {
+				"type": "String",
+				"defaultValue": "0"
+			}
+		},
 		"annotations": []
 	}
 }
