@@ -1,0 +1,17 @@
+{
+	"name": "MergeTest",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "NautaDataLake",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation"
+			}
+		},
+		"schema": {}
+	}
+}
