@@ -5,6 +5,12 @@
 			"referenceName": "NautaDataLake",
 			"type": "LinkedServiceReference"
 		},
+		"parameters": {
+			"debtorcode": {
+				"type": "string",
+				"defaultValue": "1337"
+			}
+		},
 		"annotations": [],
 		"type": "DelimitedText",
 		"typeProperties": {
