@@ -1,5 +1,5 @@
 {
-	"name": "RestResource1",
+	"name": "NautaWHStockAPI",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "RestService1",
