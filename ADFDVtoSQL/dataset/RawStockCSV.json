@@ -16,6 +16,10 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobFSLocation",
+				"folderPath": {
+					"value": "@dataset().debtorcode",
+					"type": "Expression"
+				},
 				"fileSystem": "csvexport"
 			},
 			"columnDelimiter": ",",
