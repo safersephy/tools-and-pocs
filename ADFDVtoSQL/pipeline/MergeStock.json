@@ -21,7 +21,7 @@
 							"type": "AzureBlobFSReadSettings",
 							"recursive": true,
 							"wildcardFolderPath": {
-								"value": "@{variables('debtorcode')}/@{variables('filenametick')}",
+								"value": "@{pipeline().parameters.debtorcode}/@{pipeline().parameters.filenametick}",
 								"type": "Expression"
 							},
 							"wildcardFileName": "*.json",
@@ -56,11 +56,11 @@
 						"type": "DatasetReference",
 						"parameters": {
 							"debtorcode": {
-								"value": "@variables('debtorcode')",
+								"value": "@pipeline().parameters.debtorcode",
 								"type": "Expression"
 							},
 							"filenametick": {
-								"value": "@variables('filenametick')",
+								"value": "@pipeline().parameters.filenametick",
 								"type": "Expression"
 							}
 						}
@@ -68,13 +68,13 @@
 				]
 			}
 		],
-		"variables": {
+		"parameters": {
 			"debtorcode": {
-				"type": "String",
+				"type": "string",
 				"defaultValue": "321197"
 			},
 			"filenametick": {
-				"type": "String",
+				"type": "string",
 				"defaultValue": "637636856972825204"
 			}
 		},
