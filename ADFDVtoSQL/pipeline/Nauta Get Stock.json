@@ -111,7 +111,7 @@
 											"type": "Expression"
 										},
 										"productcode": {
-											"value": "@item().productcode",
+											"value": "@item().cdprodukt",
 											"type": "Expression"
 										}
 									}
