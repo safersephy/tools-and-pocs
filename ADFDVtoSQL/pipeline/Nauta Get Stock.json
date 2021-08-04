@@ -62,7 +62,7 @@
 					},
 					"activities": [
 						{
-							"name": "Copy data1",
+							"name": "Get stock for product",
 							"type": "Copy",
 							"dependsOn": [],
 							"policy": {
@@ -80,12 +80,41 @@
 									"requestInterval": "00.00:00:00.010",
 									"requestMethod": "GET"
 								},
+								"sink": {
+									"type": "JsonSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "JsonWriteSettings"
+									}
+								},
 								"enableStaging": false
 							},
 							"inputs": [
 								{
 									"referenceName": "NautaWHStockAPI",
 									"type": "DatasetReference"
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "StockPerProductPerDebtor",
+									"type": "DatasetReference",
+									"parameters": {
+										"debtorcode": {
+											"value": "@pipeline().parameters.debtorcode",
+											"type": "Expression"
+										},
+										"filenametick": {
+											"value": "@pipeline().parameters.filenametick",
+											"type": "Expression"
+										},
+										"productcode": {
+											"value": "@item().productcode",
+											"type": "Expression"
+										}
+									}
 								}
 							]
 						}
