@@ -8,7 +8,11 @@
 		"parameters": {
 			"debtorcode": {
 				"type": "string",
-				"defaultValue": "1337"
+				"defaultValue": "0"
+			},
+			"filenametick": {
+				"type": "string",
+				"defaultValue": "0"
 			}
 		},
 		"annotations": [],
@@ -17,7 +21,7 @@
 			"location": {
 				"type": "AzureBlobFSLocation",
 				"fileName": {
-					"value": "@{utcnow('yyyy-MM-dd')}stockraw.csv",
+					"value": "@{dataset().filenametick}stockraw.csv",
 					"type": "Expression"
 				},
 				"folderPath": {
