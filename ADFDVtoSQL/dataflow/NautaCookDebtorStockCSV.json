@@ -1,0 +1,27 @@
+{
+	"name": "NautaCookDebtorStockCSV",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"linkedService": {
+						"referenceName": "NautaDataLake",
+						"type": "LinkedServiceReference"
+					},
+					"name": "ProductListPerDebtor"
+				},
+				{
+					"linkedService": {
+						"referenceName": "NautaDataLakeIR",
+						"type": "LinkedServiceReference"
+					},
+					"name": "MergedStocklistPerDebtor"
+				}
+			],
+			"sinks": [],
+			"transformations": [],
+			"script": "parameters{\n\tdebtorcode as integer (321197),\n\tfilenametick as integer (637636856972825204)\n}\nsource(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'delimited',\n\tfileSystem: 'csvexport',\n\tfolderPath: (toString($debtorcode)),\n\tfileName: (concat(toString($filenametick),\"productsperdebtorcode.csv\")),\n\tcolumnDelimiter: ',',\n\tescapeChar: '\\\\',\n\tquoteChar: '\\\"',\n\tcolumnNamesAsHeader: true) ~> ProductListPerDebtor\nsource(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'json',\n\tfileSystem: 'csvexport',\n\tfolderPath: (concat(toString($debtorcode),\"/\",toString($filenametick),\"/merged\")),\n\tfileName: 'stock.json',\n\tdocumentForm: 'documentPerLine') ~> MergedStocklistPerDebtor"
+		}
+	}
+}
