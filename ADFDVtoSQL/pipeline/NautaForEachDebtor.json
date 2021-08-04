@@ -21,26 +21,6 @@
 					},
 					"activities": [
 						{
-							"name": "ExportStock",
-							"type": "ExecutePipeline",
-							"dependsOn": [
-								{
-									"activity": "Get Raw productlist per Debtor",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
-							"userProperties": [],
-							"typeProperties": {
-								"pipeline": {
-									"referenceName": "NautaStockExport",
-									"type": "PipelineReference"
-								},
-								"waitOnCompletion": true
-							}
-						},
-						{
 							"name": "Get Raw productlist per Debtor",
 							"type": "Copy",
 							"dependsOn": [],
@@ -91,7 +71,13 @@
 							"outputs": [
 								{
 									"referenceName": "RawStockCSVDataset",
-									"type": "DatasetReference"
+									"type": "DatasetReference",
+									"parameters": {
+										"debtorcode": {
+											"value": "@item().debtorcode",
+											"type": "Expression"
+										}
+									}
 								}
 							]
 						}
