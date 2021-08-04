@@ -21,7 +21,7 @@
 			"location": {
 				"type": "AzureBlobFSLocation",
 				"fileName": {
-					"value": "@{dataset().filenametick}stockraw.csv",
+					"value": "@{dataset().filenametick}productsperdebtorcode.csv",
 					"type": "Expression"
 				},
 				"folderPath": {
