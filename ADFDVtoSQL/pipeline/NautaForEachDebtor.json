@@ -77,7 +77,7 @@
 							],
 							"outputs": [
 								{
-									"referenceName": "RawStockCSV",
+									"referenceName": "ProductsPerDebtorCSV",
 									"type": "DatasetReference",
 									"parameters": {
 										"debtorcode": {
