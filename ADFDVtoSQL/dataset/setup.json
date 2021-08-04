@@ -1,0 +1,29 @@
+{
+	"name": "setup",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "NautaDataLake",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "setup.csv",
+				"folderPath": "setup",
+				"fileSystem": "csvexport"
+			},
+			"columnDelimiter": ";",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"name": "debtorcode;ftpurl",
+				"type": "String"
+			}
+		]
+	}
+}
