@@ -3,7 +3,7 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "Lookup1",
+				"name": "Get Products from Raw Stock CSV",
 				"type": "Lookup",
 				"dependsOn": [],
 				"policy": {
@@ -16,6 +16,16 @@
 				"userProperties": []
 			}
 		],
+		"parameters": {
+			"debtorcode": {
+				"type": "string",
+				"defaultValue": "0"
+			},
+			"filenametick": {
+				"type": "string",
+				"defaultValue": "0"
+			}
+		},
 		"annotations": []
 	}
 }
