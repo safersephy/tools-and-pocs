@@ -1,5 +1,5 @@
 {
-	"name": "RawStockCSV",
+	"name": "ProductsPerDebtorCSV",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "NautaDataLake",
