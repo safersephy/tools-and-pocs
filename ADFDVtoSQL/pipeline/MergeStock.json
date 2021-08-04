@@ -3,7 +3,7 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "Merge Seperate Stockfile",
+				"name": "Merge Seperate Stockfiles",
 				"type": "Copy",
 				"dependsOn": [],
 				"policy": {
