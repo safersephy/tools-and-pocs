@@ -1,5 +1,5 @@
 {
-	"name": "OdbcTable2",
+	"name": "ODBCQueryDataSet",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "Odbc1",
