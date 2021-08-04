@@ -1,5 +1,5 @@
 {
-	"name": "NautaShippingExport",
+	"name": "Z-OLD NautaTEST",
 	"properties": {
 		"activities": [
 			{
@@ -69,25 +69,11 @@
 							"fileExtension": ".txt"
 						}
 					},
-					"enableStaging": false,
-					"translator": {
-						"type": "TabularTranslator",
-						"typeConversion": true,
-						"typeConversionSettings": {
-							"allowDataTruncation": true,
-							"treatBooleanAsNumber": false
-						}
-					}
+					"enableStaging": false
 				},
 				"inputs": [
 					{
 						"referenceName": "ODBCQueryDataSet",
-						"type": "DatasetReference"
-					}
-				],
-				"outputs": [
-					{
-						"referenceName": "RawStockCSVDataset",
 						"type": "DatasetReference"
 					}
 				]
