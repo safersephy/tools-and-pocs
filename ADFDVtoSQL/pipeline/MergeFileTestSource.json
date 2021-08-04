@@ -20,7 +20,10 @@
 						"storeSettings": {
 							"type": "AzureBlobFSReadSettings",
 							"recursive": true,
-							"wildcardFolderPath": "321197/637636856972825204",
+							"wildcardFolderPath": {
+								"value": "@{variables('debtorcode')}/@{variables('filenametick')}",
+								"type": "Expression"
+							},
 							"wildcardFileName": "*.json",
 							"enablePartitionDiscovery": false
 						},
@@ -48,12 +51,22 @@
 				],
 				"outputs": [
 					{
-						"referenceName": "MergeTest",
+						"referenceName": "MergeTestSink",
 						"type": "DatasetReference"
 					}
 				]
 			}
 		],
+		"variables": {
+			"debtorcode": {
+				"type": "String",
+				"defaultValue": "321197"
+			},
+			"filenametick": {
+				"type": "String",
+				"defaultValue": "637636856972825204"
+			}
+		},
 		"annotations": []
 	}
 }
