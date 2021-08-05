@@ -2,7 +2,7 @@
 	"name": "StockPerProductPerDebtor",
 	"properties": {
 		"linkedServiceName": {
-			"referenceName": "NautaDataLake",
+			"referenceName": "NautaDataLakeIR",
 			"type": "LinkedServiceReference"
 		},
 		"parameters": {
