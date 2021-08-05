@@ -1,0 +1,32 @@
+{
+	"name": "ProductsStockPerDebtorCSVforSFTP",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "NautaDataLakeIR",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"debtorcode": {
+				"type": "string",
+				"defaultValue": "0"
+			}
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": {
+					"value": "@{dataset().debtorcode}/output",
+					"type": "Expression"
+				},
+				"fileSystem": "csvexport"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": []
+	}
+}
