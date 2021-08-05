@@ -3,9 +3,15 @@
 	"type": "Microsoft.DataFactory/factories/linkedservices",
 	"properties": {
 		"annotations": [],
+		"parameters": {
+			"BaseURL": {
+				"type": "string",
+				"defaultValue": "ftp://test.testdefparam.com"
+			}
+		},
 		"type": "Sftp",
 		"typeProperties": {
-			"host": "ftp://test.test.com",
+			"host": "@linkedService().BaseURL",
 			"port": 22,
 			"skipHostKeyValidation": false,
 			"hostKeyFingerprint": "testfingerprint",
