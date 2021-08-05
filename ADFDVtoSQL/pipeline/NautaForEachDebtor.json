@@ -247,7 +247,7 @@
 							},
 							"inputs": [
 								{
-									"referenceName": "ProductsStockPerDebtorCSV",
+									"referenceName": "ProductsStockPerDebtorCSVDataFlowSink",
 									"type": "DatasetReference",
 									"parameters": {
 										"debtorcode": {
