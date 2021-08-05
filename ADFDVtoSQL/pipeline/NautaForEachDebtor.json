@@ -96,7 +96,14 @@
 						{
 							"name": "Set File Name Tick",
 							"type": "SetVariable",
-							"dependsOn": [],
+							"dependsOn": [
+								{
+									"activity": "Save to SFTP",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
 							"userProperties": [],
 							"typeProperties": {
 								"variableName": "File Name Tick",
@@ -111,7 +118,7 @@
 							"type": "ExecutePipeline",
 							"dependsOn": [
 								{
-									"activity": "Save to SFTP",
+									"activity": "Get Raw productlist per Debtor",
 									"dependencyConditions": [
 										"Succeeded"
 									]
@@ -141,7 +148,7 @@
 							"type": "ExecutePipeline",
 							"dependsOn": [
 								{
-									"activity": "Get Raw productlist per Debtor",
+									"activity": "Get Stock for products",
 									"dependencyConditions": [
 										"Succeeded"
 									]
@@ -204,14 +211,7 @@
 						{
 							"name": "Save to SFTP",
 							"type": "Copy",
-							"dependsOn": [
-								{
-									"activity": "CookDebtorStockCSV",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
+							"dependsOn": [],
 							"policy": {
 								"timeout": "7.00:00:00",
 								"retry": 0,
