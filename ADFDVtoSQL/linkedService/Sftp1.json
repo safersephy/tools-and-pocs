@@ -21,7 +21,7 @@
 		"typeProperties": {
 			"host": "@linkedService().BaseURL",
 			"port": 22,
-			"skipHostKeyValidation": false,
+			"skipHostKeyValidation": true,
 			"hostKeyFingerprint": "testfingerprint",
 			"authenticationType": "Basic",
 			"userName": "@linkedService().Username",
