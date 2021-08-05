@@ -9,10 +9,6 @@
 			"debtorcode": {
 				"type": "string",
 				"defaultValue": "0"
-			},
-			"filenametick": {
-				"type": "string",
-				"defaultValue": "0"
 			}
 		},
 		"annotations": [],
