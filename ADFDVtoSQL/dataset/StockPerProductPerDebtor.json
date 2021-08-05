@@ -29,7 +29,7 @@
 					"type": "Expression"
 				},
 				"folderPath": {
-					"value": "@{dataset().debtorcode}/@{dataset().filenametick}",
+					"value": "@{dataset().debtorcode}/@{dataset().filenametick}/unmergedstockfiles",
 					"type": "Expression"
 				},
 				"fileSystem": "csvexport"
