@@ -78,7 +78,7 @@
 							],
 							"outputs": [
 								{
-									"referenceName": "ProductsPerDebtorCSV",
+									"referenceName": "ProductsPerDebtorCSVHosted",
 									"type": "DatasetReference",
 									"parameters": {
 										"debtorcode": {
@@ -182,11 +182,6 @@
 									"parameters": {
 										"debtorcode": "\"321197\"",
 										"filenametick": "\"637636856972825204\""
-									},
-									"datasetParameters": {
-										"sink1": {
-											"debtorcode": "0"
-										}
 									}
 								},
 								"compute": {
@@ -221,11 +216,6 @@
 									"storeSettings": {
 										"type": "AzureBlobFSReadSettings",
 										"recursive": true,
-										"wildcardFolderPath": {
-											"value": "@{item().debtorcode}/output",
-											"type": "Expression"
-										},
-										"wildcardFileName": "productsStockperdebtorcode.csv",
 										"enablePartitionDiscovery": false
 									},
 									"formatSettings": {
@@ -236,7 +226,6 @@
 									"type": "DelimitedTextSink",
 									"storeSettings": {
 										"type": "SftpWriteSettings",
-										"copyBehavior": "MergeFiles",
 										"operationTimeout": "01:00:00",
 										"useTempFileRename": true
 									},

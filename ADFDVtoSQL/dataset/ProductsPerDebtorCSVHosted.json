@@ -1,5 +1,5 @@
 {
-	"name": "ProductsPerDebtorCSV",
+	"name": "ProductsPerDebtorCSVHosted",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "NautaDataLake",

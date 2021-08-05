@@ -27,7 +27,7 @@
 						}
 					},
 					"dataset": {
-						"referenceName": "ProductsPerDebtorCSV",
+						"referenceName": "ProductsPerDebtorCSVHosted",
 						"type": "DatasetReference",
 						"parameters": {
 							"debtorcode": {
