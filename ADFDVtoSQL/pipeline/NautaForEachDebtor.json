@@ -1,6 +1,7 @@
 {
 	"name": "NautaForEachDebtor",
 	"properties": {
+		"description": "POC Pipeline voor Nauta\n\n1. loopt door debtors in setup CSV bestandje\n2. per debtor haal de collectielijst en producten op.\n3. loop door de producten en haal per product de actuele voorraad op\n4. merge alle voorraad informatie naar 1 bestand\n5. transformeer productenlijst en voorraadlijst naar 1 CSV bestand\n6. Sla output bestand op op de in de setup gespecificeerde SFTP locatie. \n\nBestandstructuur:\n\nlijst met producten per debtor per export timestamp\n/<debtorcode>/<timestamptick>/productsperdebtorcode.csv \n\nvoorraad per product per export timestamp per debiteur\n/<debtorcode>/<timestamptick>/unmergedstockfiles/<productcode>.json\n\nsamengevoegde voorraad per export timestamp per debiteur\n/<debtorcode>/<timestamptick>/mergedstockfile/stock.json\n\n\ngekookte voorraad CSV klaar voor verzending naar SFTP\n/<debtorcode>/<timestamptick>/output/productsStockperdebtorcode.csv\n",
 		"activities": [
 			{
 				"name": "Loop through Debtors",
