@@ -5,9 +5,18 @@
 			"referenceName": "Sftp1",
 			"type": "LinkedServiceReference",
 			"parameters": {
-				"BaseURL": "ftp://test.testdefparam.com",
-				"Username": "userparam",
-				"Password": "passparam"
+				"BaseURL": {
+					"value": "@dataset().ftpurl",
+					"type": "Expression"
+				},
+				"Username": {
+					"value": "@dataset().ftpuser",
+					"type": "Expression"
+				},
+				"Password": {
+					"value": "@dataset().ftppass",
+					"type": "Expression"
+				}
 			}
 		},
 		"parameters": {
@@ -32,7 +41,12 @@
 		"type": "DelimitedText",
 		"typeProperties": {
 			"location": {
-				"type": "SftpLocation"
+				"type": "SftpLocation",
+				"fileName": "testsink.csv",
+				"folderPath": {
+					"value": "@dataset().ftppath",
+					"type": "Expression"
+				}
 			},
 			"columnDelimiter": ",",
 			"escapeChar": "\\",
