@@ -1,7 +1,7 @@
 {
 	"name": "Sftp1",
-	"type": "Microsoft.DataFactory/factories/linkedservices",
 	"properties": {
+		"type": "Sftp",
 		"annotations": [],
 		"parameters": {
 			"BaseURL": {
@@ -9,7 +9,6 @@
 				"defaultValue": "ftp://test.testdefparam.com"
 			}
 		},
-		"type": "Sftp",
 		"typeProperties": {
 			"host": "@linkedService().BaseURL",
 			"port": 22,
