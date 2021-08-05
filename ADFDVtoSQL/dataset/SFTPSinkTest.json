@@ -1,0 +1,25 @@
+{
+	"name": "SFTPSinkTest",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "Sftp1",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"BaseURL": "ftp://test.testdefparam.com",
+				"Username": "userparam",
+				"Password": "passparam"
+			}
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "SftpLocation"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"quoteChar": "\""
+		},
+		"schema": []
+	}
+}
