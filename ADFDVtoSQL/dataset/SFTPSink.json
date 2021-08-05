@@ -1,5 +1,5 @@
 {
-	"name": "SFTPSinkTest",
+	"name": "SFTPSink",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "Sftp1",
