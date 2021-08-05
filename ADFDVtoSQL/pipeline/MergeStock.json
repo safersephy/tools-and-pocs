@@ -42,7 +42,28 @@
 							"filePattern": "arrayOfObjects"
 						}
 					},
-					"enableStaging": false
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"path": "$['productcode']"
+								},
+								"sink": {
+									"path": "$['productcode']"
+								}
+							},
+							{
+								"source": {
+									"path": "$['availablestock']"
+								},
+								"sink": {
+									"path": "$['availablestock']"
+								}
+							}
+						]
+					}
 				},
 				"inputs": [
 					{
