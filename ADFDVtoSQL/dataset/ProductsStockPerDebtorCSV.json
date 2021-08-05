@@ -20,10 +20,6 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobFSLocation",
-				"fileName": {
-					"value": "@{dataset().filenametick}productsStockperdebtorcode.csv",
-					"type": "Expression"
-				},
 				"folderPath": {
 					"value": "@{dataset().debtorcode}/output",
 					"type": "Expression"
