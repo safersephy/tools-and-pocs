@@ -10,6 +10,24 @@
 				"Password": "passparam"
 			}
 		},
+		"parameters": {
+			"ftpurl": {
+				"type": "string",
+				"defaultValue": "0"
+			},
+			"ftpuser": {
+				"type": "string",
+				"defaultValue": "0"
+			},
+			"ftppass": {
+				"type": "string",
+				"defaultValue": "0"
+			},
+			"ftppath": {
+				"type": "string",
+				"defaultValue": "0"
+			}
+		},
 		"annotations": [],
 		"type": "DelimitedText",
 		"typeProperties": {
