@@ -22,7 +22,7 @@
 				"type": "AzureBlobFSLocation",
 				"fileName": "stock.json",
 				"folderPath": {
-					"value": "@{dataset().debtorcode}/@{dataset().filenametick}/merged",
+					"value": "@{dataset().debtorcode}/@{dataset().filenametick}/mergedstockfile",
 					"type": "Expression"
 				},
 				"fileSystem": "csvexport"
