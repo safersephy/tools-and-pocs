@@ -21,11 +21,11 @@
 			"location": {
 				"type": "AzureBlobFSLocation",
 				"fileName": {
-					"value": "@{dataset().filenametick}productsperdebtorcode.csv",
+					"value": "productsperdebtorcode.csv",
 					"type": "Expression"
 				},
 				"folderPath": {
-					"value": "@dataset().debtorcode",
+					"value": "@{dataset().debtorcode}/@{dataset().filenametick}",
 					"type": "Expression"
 				},
 				"fileSystem": "csvexport"
