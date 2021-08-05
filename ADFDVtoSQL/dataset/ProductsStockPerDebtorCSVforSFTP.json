@@ -9,6 +9,10 @@
 			"debtorcode": {
 				"type": "string",
 				"defaultValue": "0"
+			},
+			"filenametick": {
+				"type": "string",
+				"defaultValue": "0"
 			}
 		},
 		"annotations": [],
@@ -18,7 +22,7 @@
 				"type": "AzureBlobFSLocation",
 				"fileName": "productsStockperdebtorcode.csv",
 				"folderPath": {
-					"value": "@{dataset().debtorcode}/output",
+					"value": "@{dataset().debtorcode}/@{dataset().filenametick}/output",
 					"type": "Expression"
 				},
 				"fileSystem": "csvexport"
