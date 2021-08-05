@@ -26,7 +26,7 @@
 							"type": "Copy",
 							"dependsOn": [
 								{
-									"activity": "Set File Name Tick",
+									"activity": "Save to SFTP",
 									"dependencyConditions": [
 										"Succeeded"
 									]
@@ -201,7 +201,7 @@
 							"type": "Copy",
 							"dependsOn": [
 								{
-									"activity": "CookDebtorStockCSV",
+									"activity": "Set File Name Tick",
 									"dependencyConditions": [
 										"Succeeded"
 									]
@@ -221,11 +221,6 @@
 									"storeSettings": {
 										"type": "AzureBlobFSReadSettings",
 										"recursive": true,
-										"wildcardFolderPath": {
-											"value": "@{activity('Get Debtors').output}/output",
-											"type": "Expression"
-										},
-										"wildcardFileName": "productsStockperdebtorcode.csv",
 										"enablePartitionDiscovery": false
 									},
 									"formatSettings": {
@@ -242,7 +237,7 @@
 									"formatSettings": {
 										"type": "DelimitedTextWriteSettings",
 										"quoteAllText": true,
-										"fileExtension": ".txt"
+										"fileExtension": ".csv"
 									}
 								},
 								"enableStaging": false,
@@ -269,8 +264,17 @@
 							],
 							"outputs": [
 								{
-									"referenceName": "SFTPSink",
-									"type": "DatasetReference"
+									"referenceName": "SFTPSinkTest",
+									"type": "DatasetReference",
+									"parameters": {
+										"ftpurl": {
+											"value": "@item().ftpurl",
+											"type": "Expression"
+										},
+										"ftpuser": "@item().ftpuser",
+										"ftppass": "@item().ftppass",
+										"ftppath": "@item().ftppath"
+									}
 								}
 							]
 						}
