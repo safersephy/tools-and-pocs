@@ -21,7 +21,7 @@
 							"type": "AzureBlobFSReadSettings",
 							"recursive": true,
 							"wildcardFolderPath": {
-								"value": "@{pipeline().parameters.debtorcode}/@{pipeline().parameters.filenametick}",
+								"value": "@{pipeline().parameters.debtorcode}/@{pipeline().parameters.filenametick}/unmergedstockfiles",
 								"type": "Expression"
 							},
 							"wildcardFileName": "*.json",

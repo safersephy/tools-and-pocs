@@ -96,14 +96,7 @@
 						{
 							"name": "Set File Name Tick",
 							"type": "SetVariable",
-							"dependsOn": [
-								{
-									"activity": "Save to SFTP",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
+							"dependsOn": [],
 							"userProperties": [],
 							"typeProperties": {
 								"variableName": "File Name Tick",
@@ -211,7 +204,14 @@
 						{
 							"name": "Save to SFTP",
 							"type": "Copy",
-							"dependsOn": [],
+							"dependsOn": [
+								{
+									"activity": "CookDebtorStockCSV",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
 							"policy": {
 								"timeout": "7.00:00:00",
 								"retry": 0,
