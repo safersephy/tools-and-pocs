@@ -161,7 +161,7 @@
 							"type": "ExecuteDataFlow",
 							"dependsOn": [
 								{
-									"activity": "Merge Stockfile",
+									"activity": "Set File Name Tick",
 									"dependencyConditions": [
 										"Succeeded"
 									]
@@ -201,7 +201,7 @@
 							"type": "Copy",
 							"dependsOn": [
 								{
-									"activity": "Set File Name Tick",
+									"activity": "CookDebtorStockCSV",
 									"dependencyConditions": [
 										"Succeeded"
 									]
@@ -221,6 +221,11 @@
 									"storeSettings": {
 										"type": "AzureBlobFSReadSettings",
 										"recursive": true,
+										"wildcardFolderPath": {
+											"value": "@{activity('Get Debtors').output}/output",
+											"type": "Expression"
+										},
+										"wildcardFileName": "productsStockperdebtorcode.csv",
 										"enablePartitionDiscovery": false
 									},
 									"formatSettings": {
@@ -231,6 +236,7 @@
 									"type": "DelimitedTextSink",
 									"storeSettings": {
 										"type": "SftpWriteSettings",
+										"copyBehavior": "MergeFiles",
 										"operationTimeout": "01:00:00",
 										"useTempFileRename": true
 									},
