@@ -178,7 +178,16 @@
 							"typeProperties": {
 								"dataflow": {
 									"referenceName": "NautaCookDebtorStockCSV",
-									"type": "DataFlowReference"
+									"type": "DataFlowReference",
+									"parameters": {
+										"debtorcode": "\"321197\"",
+										"filenametick": "\"637636856972825204\""
+									},
+									"datasetParameters": {
+										"sink1": {
+											"debtorcode": "0"
+										}
+									}
 								},
 								"compute": {
 									"coreCount": 8,
@@ -186,6 +195,84 @@
 								},
 								"traceLevel": "Fine"
 							}
+						},
+						{
+							"name": "Save to SFTP",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "CookDebtorStockCSV",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "DelimitedTextSource",
+									"storeSettings": {
+										"type": "AzureBlobFSReadSettings",
+										"recursive": true,
+										"wildcardFolderPath": {
+											"value": "@{activity('Get Debtors').output}/output",
+											"type": "Expression"
+										},
+										"wildcardFileName": "productsStockperdebtorcode.csv",
+										"enablePartitionDiscovery": false
+									},
+									"formatSettings": {
+										"type": "DelimitedTextReadSettings"
+									}
+								},
+								"sink": {
+									"type": "DelimitedTextSink",
+									"storeSettings": {
+										"type": "SftpWriteSettings",
+										"operationTimeout": "01:00:00",
+										"useTempFileRename": true
+									},
+									"formatSettings": {
+										"type": "DelimitedTextWriteSettings",
+										"quoteAllText": true,
+										"fileExtension": ".txt"
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "ProductsStockPerDebtorCSV",
+									"type": "DatasetReference",
+									"parameters": {
+										"debtorcode": {
+											"value": "@activity('Get Debtors').output",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "SFTPSink",
+									"type": "DatasetReference"
+								}
+							]
 						}
 					]
 				}
