@@ -5,9 +5,9 @@
 			"referenceName": "Sftp1",
 			"type": "LinkedServiceReference",
 			"parameters": {
-				"BaseURL": "ftp://test.testdynparam.com",
-				"Username": "dyndynuser",
-				"Password": "dyndynpass"
+				"BaseURL": "erqxhpwmbqvmi.centralus.azurecontainer.io",
+				"Username": "sftpuser",
+				"Password": "sftppass"
 			}
 		},
 		"annotations": [],
