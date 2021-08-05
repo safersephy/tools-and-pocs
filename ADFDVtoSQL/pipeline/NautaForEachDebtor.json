@@ -222,7 +222,7 @@
 										"type": "AzureBlobFSReadSettings",
 										"recursive": true,
 										"wildcardFolderPath": {
-											"value": "@{item().debtorcode}/output\n",
+											"value": "@{item().debtorcode}/output",
 											"type": "Expression"
 										},
 										"wildcardFileName": "productsStockperdebtorcode.csv",
