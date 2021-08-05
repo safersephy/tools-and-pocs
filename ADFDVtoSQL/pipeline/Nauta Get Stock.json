@@ -62,7 +62,7 @@
 					},
 					"activities": [
 						{
-							"name": "Get stock for product",
+							"name": "WIP - Get stock for product",
 							"type": "Copy",
 							"dependsOn": [],
 							"policy": {
