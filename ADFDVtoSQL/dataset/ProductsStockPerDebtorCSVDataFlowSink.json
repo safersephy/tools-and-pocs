@@ -1,5 +1,5 @@
 {
-	"name": "ProductsStockPerDebtorCSV",
+	"name": "ProductsStockPerDebtorCSVDataFlowSink",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "NautaDataLakeIR",
