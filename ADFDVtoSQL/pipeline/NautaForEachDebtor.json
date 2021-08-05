@@ -26,7 +26,7 @@
 							"type": "Copy",
 							"dependsOn": [
 								{
-									"activity": "Save to SFTP",
+									"activity": "Set File Name Tick",
 									"dependencyConditions": [
 										"Succeeded"
 									]
@@ -111,7 +111,7 @@
 							"type": "ExecutePipeline",
 							"dependsOn": [
 								{
-									"activity": "Get Raw productlist per Debtor",
+									"activity": "Save to SFTP",
 									"dependencyConditions": [
 										"Succeeded"
 									]
@@ -141,7 +141,7 @@
 							"type": "ExecutePipeline",
 							"dependsOn": [
 								{
-									"activity": "Get Stock for products",
+									"activity": "Get Raw productlist per Debtor",
 									"dependencyConditions": [
 										"Succeeded"
 									]
@@ -153,7 +153,17 @@
 									"referenceName": "MergeStock",
 									"type": "PipelineReference"
 								},
-								"waitOnCompletion": true
+								"waitOnCompletion": true,
+								"parameters": {
+									"debtorcode": {
+										"value": "@item().debtorcode",
+										"type": "Expression"
+									},
+									"filenametick": {
+										"value": "@variables('File Name Tick')",
+										"type": "Expression"
+									}
+								}
 							}
 						},
 						{
@@ -161,7 +171,7 @@
 							"type": "ExecuteDataFlow",
 							"dependsOn": [
 								{
-									"activity": "Set File Name Tick",
+									"activity": "Merge Stockfile",
 									"dependencyConditions": [
 										"Succeeded"
 									]
@@ -247,11 +257,11 @@
 							},
 							"inputs": [
 								{
-									"referenceName": "ProductsStockPerDebtorCSVDataFlowSink",
+									"referenceName": "ProductsStockPerDebtorCSVforSFTP",
 									"type": "DatasetReference",
 									"parameters": {
 										"debtorcode": {
-											"value": "@activity('Get Debtors').output",
+											"value": "@item().debtorcode",
 											"type": "Expression"
 										}
 									}
@@ -259,7 +269,7 @@
 							],
 							"outputs": [
 								{
-									"referenceName": "SFTPSinkTest",
+									"referenceName": "SFTPSink",
 									"type": "DatasetReference",
 									"parameters": {
 										"ftpurl": {
