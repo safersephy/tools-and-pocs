@@ -19,13 +19,21 @@
 					"name": "MergedStocklistPerDebtor"
 				}
 			],
-			"sinks": [],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ProductsStockPerDebtorCSV",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
 			"transformations": [
 				{
 					"name": "Join1"
 				}
 			],
-			"script": "parameters{\n\tdebtorcode as string (\"321197\"),\n\tfilenametick as string (\"637636856972825204\")\n}\nsource(output(\n\t\tcdcollijst as integer,\n\t\tcddeb as integer,\n\t\tcdprodukt as long,\n\t\tcdstandeenhd as string,\n\t\t{omschr-35} as string,\n\t\tcduac as long,\n\t\tDEPRICATED as string,\n\t\tBLOCKED as boolean\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'delimited',\n\tfileSystem: 'csvexport',\n\tfolderPath: (toString($debtorcode)),\n\tfileName: (concat(toString($filenametick),\"productsperdebtorcode.csv\")),\n\tcolumnDelimiter: ',',\n\tescapeChar: '\\\\',\n\tquoteChar: '\\\"',\n\tcolumnNamesAsHeader: true) ~> ProductListPerDebtor\nsource(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'json',\n\tfileSystem: 'csvexport',\n\tfolderPath: (concat($debtorcode,\"/\",$filenametick,\"/merged\")),\n\tfileName: 'stock.json',\n\tdocumentForm: 'documentPerLine') ~> MergedStocklistPerDebtor\nProductListPerDebtor, MergedStocklistPerDebtor join(cdprodukt == productcode,\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> Join1"
+			"script": "parameters{\n\tdebtorcode as string (\"321197\"),\n\tfilenametick as string (\"637636856972825204\")\n}\nsource(output(\n\t\tcdcollijst as integer,\n\t\tcddeb as integer,\n\t\tcdprodukt as long,\n\t\tcdstandeenhd as string,\n\t\t{omschr-35} as string,\n\t\tcduac as long,\n\t\tDEPRICATED as string,\n\t\tBLOCKED as boolean\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'delimited',\n\tfileSystem: 'csvexport',\n\tfolderPath: (toString($debtorcode)),\n\tfileName: (concat(toString($filenametick),\"productsperdebtorcode.csv\")),\n\tcolumnDelimiter: ',',\n\tescapeChar: '\\\\',\n\tquoteChar: '\\\"',\n\tcolumnNamesAsHeader: true) ~> ProductListPerDebtor\nsource(output(\n\t\tavailablestock as short,\n\t\tproductcode as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'json',\n\tfileSystem: 'csvexport',\n\tfolderPath: (concat($debtorcode,\"/\",$filenametick,\"/merged\")),\n\tfileName: 'stock.json',\n\tdocumentForm: 'documentPerLine') ~> MergedStocklistPerDebtor\nProductListPerDebtor, MergedStocklistPerDebtor join(toString(cdprodukt) == toString(productcode),\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> Join1\nJoin1 sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\ttruncate: true,\n\tumask: 0022,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> sink1"
 		}
 	}
 }
