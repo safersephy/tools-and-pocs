@@ -3,7 +3,12 @@
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "Sftp1",
-			"type": "LinkedServiceReference"
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"BaseURL": "ftp://test.testdynparam.com",
+				"Username": "dyndynuser",
+				"Password": "dyndynpass"
+			}
 		},
 		"annotations": [],
 		"type": "DelimitedText",
