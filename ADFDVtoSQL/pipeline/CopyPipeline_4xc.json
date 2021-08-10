@@ -1,0 +1,195 @@
+{
+	"name": "CopyPipeline_4xc",
+	"properties": {
+		"activities": [
+			{
+				"name": "ForEach_4xc",
+				"type": "ForEach",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@pipeline().parameters.cw_items",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Copy_4xc",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [
+								{
+									"name": "Source",
+									"value": "@{item().source.schema}.@{item().source.table}"
+								},
+								{
+									"name": "Destination",
+									"value": "synapse//@{item().destination.fileName}"
+								}
+							],
+							"typeProperties": {
+								"source": {
+									"type": "AzureSqlSource",
+									"partitionOption": "None"
+								},
+								"sink": {
+									"type": "ParquetSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "ParquetWriteSettings"
+									}
+								},
+								"enableStaging": false,
+								"validateDataConsistency": false
+							},
+							"inputs": [
+								{
+									"referenceName": "SourceDataset_4xc",
+									"type": "DatasetReference",
+									"parameters": {
+										"cw_schema": "@item().source.schema",
+										"cw_table": "@item().source.table"
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "DestinationDataset_4xc",
+									"type": "DatasetReference",
+									"parameters": {
+										"cw_fileName": "@item().destination.fileName"
+									}
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"cw_items": {
+				"type": "Array",
+				"defaultValue": [
+					{
+						"source": {
+							"schema": "dbo",
+							"table": "BuildVersion"
+						},
+						"destination": {
+							"fileName": "BuildVersion.parquet"
+						}
+					},
+					{
+						"source": {
+							"schema": "dbo",
+							"table": "ErrorLog"
+						},
+						"destination": {
+							"fileName": "ErrorLog.parquet"
+						}
+					},
+					{
+						"source": {
+							"schema": "SalesLT",
+							"table": "Address"
+						},
+						"destination": {
+							"fileName": "Address.parquet"
+						}
+					},
+					{
+						"source": {
+							"schema": "SalesLT",
+							"table": "Customer"
+						},
+						"destination": {
+							"fileName": "Customer.parquet"
+						}
+					},
+					{
+						"source": {
+							"schema": "SalesLT",
+							"table": "CustomerAddress"
+						},
+						"destination": {
+							"fileName": "CustomerAddress.parquet"
+						}
+					},
+					{
+						"source": {
+							"schema": "SalesLT",
+							"table": "Product"
+						},
+						"destination": {
+							"fileName": "Product.parquet"
+						}
+					},
+					{
+						"source": {
+							"schema": "SalesLT",
+							"table": "ProductCategory"
+						},
+						"destination": {
+							"fileName": "ProductCategory.parquet"
+						}
+					},
+					{
+						"source": {
+							"schema": "SalesLT",
+							"table": "ProductDescription"
+						},
+						"destination": {
+							"fileName": "ProductDescription.parquet"
+						}
+					},
+					{
+						"source": {
+							"schema": "SalesLT",
+							"table": "ProductModel"
+						},
+						"destination": {
+							"fileName": "ProductModel.parquet"
+						}
+					},
+					{
+						"source": {
+							"schema": "SalesLT",
+							"table": "ProductModelProductDescription"
+						},
+						"destination": {
+							"fileName": "ProductModelProductDescription.parquet"
+						}
+					},
+					{
+						"source": {
+							"schema": "SalesLT",
+							"table": "SalesOrderDetail"
+						},
+						"destination": {
+							"fileName": "SalesOrderDetail.parquet"
+						}
+					},
+					{
+						"source": {
+							"schema": "SalesLT",
+							"table": "SalesOrderHeader"
+						},
+						"destination": {
+							"fileName": "SalesOrderHeader.parquet"
+						}
+					}
+				]
+			}
+		},
+		"annotations": []
+	}
+}
