@@ -1,0 +1,1019 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name"
+		},
+		"NautaDataLakeIR": {
+			"type": "string"
+		},
+		"Odbc1": {
+			"type": "string"
+		},
+		"NautaDataLake": {
+			"type": "string"
+		},
+		"Sftp1": {
+			"type": "string"
+		},
+		"RestService1": {
+			"type": "string"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/NautaForEachDebtor')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "POC Pipeline voor Nauta\n\n1. loopt door debtors in setup CSV bestandje\n2. per debtor haal de collectielijst en producten op.\n3. loop door de producten en haal per product de actuele voorraad op\n4. merge alle voorraad informatie naar 1 bestand\n5. transformeer productenlijst en voorraadlijst naar 1 CSV bestand\n6. Sla output bestand op op de in de setup gespecificeerde SFTP locatie. \n\nBestandstructuur:\n\nlijst met producten per debtor per export timestamp\n/<debtorcode>/<timestamptick>/productsperdebtorcode.csv \n\nvoorraad per product per export timestamp per debiteur\n/<debtorcode>/<timestamptick>/unmergedstockfiles/<productcode>.json\n\nsamengevoegde voorraad per export timestamp per debiteur\n/<debtorcode>/<timestamptick>/mergedstockfile/stock.json\n\n\ngekookte voorraad CSV klaar voor verzending naar SFTP\n/<debtorcode>/<timestamptick>/output/productsStockperdebtorcode.csv\n",
+				"activities": [
+					{
+						"name": "Loop through Debtors",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "Get Debtors",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('Get Debtors').output.value",
+								"type": "Expression"
+							},
+							"isSequential": false,
+							"activities": [
+								{
+									"name": "Get Raw productlist per Debtor",
+									"type": "Copy",
+									"dependsOn": [
+										{
+											"activity": "Set File Name Tick",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "OdbcSource",
+											"query": {
+												"value": "SELECT\nCollectionListUsage.\"cdcollijst\",\nCollectionListUsage.\"cddeb\",\nCollectionListLines.\"cdprodukt\",\nCollectionListLines.\"cdstandeenhd\",\nProducts.\"Omschr-35\",\nProductUnits.\"cduac\",\nSubstr(AssortmentProducts.\"cdblok\", 2, 1) Depricated,\nSubstr(AssortmentProducts.\"cdblok\", 7, 1) Blocked\nFROM\n\"PUB\".\"lb-202\" CollectionListUsage,\n\"PUB\".\"lb-203\" CollectionListLines,\n\"PUB\".\"bb-040\" Products,\n\"PUB\".\"lb-180\" AssortmentProducts,\n\"PUB\".\"bb-051\" ProductUnits\nWHERE\nCollectionListUsage.\"cdadmin\" = '10' AND AssortmentProducts.\"cdadmin\" = '10'\nAND CollectionListUsage.\"cdcollijst\" = CollectionListLines.\"cdcollijst\"\nAND CollectionListLines.\"cdprodukt\" = Products.\"cdprodukt\"\nAND CollectionListLines.\"cdstandeenhd\" = ProductUnits.\"cdstandeenhd\"\nAND CollectionListLines.\"cdprodukt\" = ProductUnits.\"cdprodukt\"\nAND CollectionListLines.\"cdstandeenhd\" = AssortmentProducts.\"cdstandeenhd\"\nAND CollectionListLines.\"cdprodukt\" = AssortmentProducts.\"cdprodukt\"\nAND CollectionListUsage.\"cddeb\" = @{item().debtorcode}",
+												"type": "Expression"
+											},
+											"queryTimeout": "02:00:00"
+										},
+										"sink": {
+											"type": "DelimitedTextSink",
+											"storeSettings": {
+												"type": "AzureBlobFSWriteSettings"
+											},
+											"formatSettings": {
+												"type": "DelimitedTextWriteSettings",
+												"quoteAllText": true,
+												"fileExtension": ".txt"
+											}
+										},
+										"enableStaging": false,
+										"translator": {
+											"type": "TabularTranslator",
+											"typeConversion": true,
+											"typeConversionSettings": {
+												"allowDataTruncation": true,
+												"treatBooleanAsNumber": false
+											}
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "ODBCQueryDataSet",
+											"type": "DatasetReference"
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "ProductsPerDebtorCSVHosted",
+											"type": "DatasetReference",
+											"parameters": {
+												"debtorcode": {
+													"value": "@item().debtorcode",
+													"type": "Expression"
+												},
+												"filenametick": {
+													"value": "@variables('File Name Tick')",
+													"type": "Expression"
+												}
+											}
+										}
+									]
+								},
+								{
+									"name": "Set File Name Tick",
+									"type": "SetVariable",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "File Name Tick",
+										"value": {
+											"value": "@string(ticks(utcnow()))",
+											"type": "Expression"
+										}
+									}
+								},
+								{
+									"name": "WIP - Get Stock for products",
+									"type": "ExecutePipeline",
+									"dependsOn": [
+										{
+											"activity": "Get Raw productlist per Debtor",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "Nauta Get Stock",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"debtorcode": {
+												"value": "@item().debtorcode",
+												"type": "Expression"
+											},
+											"filenametick": {
+												"value": "@variables('File Name Tick')",
+												"type": "Expression"
+											}
+										}
+									}
+								},
+								{
+									"name": "Merge Stockfile",
+									"type": "ExecutePipeline",
+									"dependsOn": [
+										{
+											"activity": "WIP - Get Stock for products",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "MergeStock",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"debtorcode": {
+												"value": "@item().debtorcode",
+												"type": "Expression"
+											},
+											"filenametick": {
+												"value": "@variables('File Name Tick')",
+												"type": "Expression"
+											}
+										}
+									}
+								},
+								{
+									"name": "CookDebtorStockCSV",
+									"type": "ExecuteDataFlow",
+									"dependsOn": [
+										{
+											"activity": "Merge Stockfile",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "1.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"dataflow": {
+											"referenceName": "NautaCookDebtorStockCSV",
+											"type": "DataFlowReference",
+											"parameters": {
+												"debtorcode": "\"321197\"",
+												"filenametick": "\"637636856972825204\""
+											}
+										},
+										"compute": {
+											"coreCount": 8,
+											"computeType": "General"
+										},
+										"traceLevel": "Fine"
+									}
+								},
+								{
+									"name": "Save to SFTP",
+									"type": "Copy",
+									"dependsOn": [
+										{
+											"activity": "CookDebtorStockCSV",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "DelimitedTextSource",
+											"storeSettings": {
+												"type": "AzureBlobFSReadSettings",
+												"recursive": true,
+												"enablePartitionDiscovery": false
+											},
+											"formatSettings": {
+												"type": "DelimitedTextReadSettings"
+											}
+										},
+										"sink": {
+											"type": "DelimitedTextSink",
+											"storeSettings": {
+												"type": "SftpWriteSettings",
+												"operationTimeout": "01:00:00",
+												"useTempFileRename": true
+											},
+											"formatSettings": {
+												"type": "DelimitedTextWriteSettings",
+												"quoteAllText": true,
+												"fileExtension": ".csv"
+											}
+										},
+										"enableStaging": false,
+										"translator": {
+											"type": "TabularTranslator",
+											"typeConversion": true,
+											"typeConversionSettings": {
+												"allowDataTruncation": true,
+												"treatBooleanAsNumber": false
+											}
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "ProductsStockPerDebtorCSVforSFTP",
+											"type": "DatasetReference",
+											"parameters": {
+												"debtorcode": {
+													"value": "@item().debtorcode",
+													"type": "Expression"
+												}
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "SFTPSink",
+											"type": "DatasetReference",
+											"parameters": {
+												"ftpurl": {
+													"value": "@item().ftpurl",
+													"type": "Expression"
+												},
+												"ftpuser": "@item().ftpuser",
+												"ftppass": "@item().ftppass",
+												"ftppath": "@item().ftppath"
+											}
+										}
+									]
+								}
+							]
+						}
+					},
+					{
+						"name": "Get Debtors",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							},
+							"dataset": {
+								"referenceName": "setup",
+								"type": "DatasetReference"
+							},
+							"firstRowOnly": false
+						}
+					}
+				],
+				"variables": {
+					"File Name Tick": {
+						"type": "String",
+						"defaultValue": "0"
+					}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/setup')]",
+				"[concat(variables('factoryId'), '/datasets/ODBCQueryDataSet')]",
+				"[concat(variables('factoryId'), '/datasets/ProductsPerDebtorCSVHosted')]",
+				"[concat(variables('factoryId'), '/pipelines/Nauta Get Stock')]",
+				"[concat(variables('factoryId'), '/pipelines/MergeStock')]",
+				"[concat(variables('factoryId'), '/dataflows/NautaCookDebtorStockCSV')]",
+				"[concat(variables('factoryId'), '/datasets/ProductsStockPerDebtorCSVforSFTP')]",
+				"[concat(variables('factoryId'), '/datasets/SFTPSink')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/setup')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "[parameters('NautaDataLakeIR')]",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "setup.csv",
+						"folderPath": "setup",
+						"fileSystem": "csvexport"
+					},
+					"columnDelimiter": ";",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "debtorcode;ftpurl",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ODBCQueryDataSet')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "[parameters('Odbc1')]",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "OdbcTable",
+				"schema": [],
+				"typeProperties": {
+					"tableName": "\"PUB\".\"va-210\""
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ProductsPerDebtorCSVHosted')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "[parameters('NautaDataLake')]",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"debtorcode": {
+						"type": "string",
+						"defaultValue": "0"
+					},
+					"filenametick": {
+						"type": "string",
+						"defaultValue": "0"
+					}
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "productsperdebtorcode.csv",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "@{dataset().debtorcode}/@{dataset().filenametick}",
+							"type": "Expression"
+						},
+						"fileSystem": "csvexport"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Nauta Get Stock')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Get Products from Raw Stock CSV",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							},
+							"dataset": {
+								"referenceName": "ProductsPerDebtorCSVIR",
+								"type": "DatasetReference",
+								"parameters": {
+									"debtorcode": {
+										"value": "@pipeline().parameters.debtorcode",
+										"type": "Expression"
+									},
+									"filenametick": {
+										"value": "@pipeline().parameters.filenametick",
+										"type": "Expression"
+									}
+								}
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "Loop through Products",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "Get Products from Raw Stock CSV",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('Get Products from Raw Stock CSV').output.value",
+								"type": "Expression"
+							},
+							"activities": [
+								{
+									"name": "WIP - Get stock for product",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "RestSource",
+											"httpRequestTimeout": "00:01:40",
+											"requestInterval": "00.00:00:00.010",
+											"requestMethod": "GET"
+										},
+										"sink": {
+											"type": "JsonSink",
+											"storeSettings": {
+												"type": "AzureBlobFSWriteSettings"
+											},
+											"formatSettings": {
+												"type": "JsonWriteSettings"
+											}
+										},
+										"enableStaging": false
+									},
+									"inputs": [
+										{
+											"referenceName": "NautaWHStockAPI",
+											"type": "DatasetReference"
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "StockPerProductPerDebtor",
+											"type": "DatasetReference",
+											"parameters": {
+												"debtorcode": {
+													"value": "@pipeline().parameters.debtorcode",
+													"type": "Expression"
+												},
+												"filenametick": {
+													"value": "@pipeline().parameters.filenametick",
+													"type": "Expression"
+												},
+												"productcode": {
+													"value": "@item().cdprodukt",
+													"type": "Expression"
+												}
+											}
+										}
+									]
+								}
+							]
+						}
+					}
+				],
+				"parameters": {
+					"debtorcode": {
+						"type": "string",
+						"defaultValue": "0"
+					},
+					"filenametick": {
+						"type": "string",
+						"defaultValue": "0"
+					}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ProductsPerDebtorCSVIR')]",
+				"[concat(variables('factoryId'), '/datasets/NautaWHStockAPI')]",
+				"[concat(variables('factoryId'), '/datasets/StockPerProductPerDebtor')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/MergeStock')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Merge Seperate Stockfiles",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "JsonSource",
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"wildcardFolderPath": {
+										"value": "@{pipeline().parameters.debtorcode}/@{pipeline().parameters.filenametick}/unmergedstockfiles",
+										"type": "Expression"
+									},
+									"wildcardFileName": "*.json",
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "JsonReadSettings"
+								}
+							},
+							"sink": {
+								"type": "JsonSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings",
+									"copyBehavior": "MergeFiles"
+								},
+								"formatSettings": {
+									"type": "JsonWriteSettings",
+									"filePattern": "setOfObjects"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"path": "$['productcode']"
+										},
+										"sink": {
+											"path": "$['productcode']"
+										}
+									},
+									{
+										"source": {
+											"path": "$['availablestock']"
+										},
+										"sink": {
+											"path": "$['availablestock']"
+										}
+									}
+								]
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "UnmergedStockJSONList",
+								"type": "DatasetReference"
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "MergedStockJSON",
+								"type": "DatasetReference",
+								"parameters": {
+									"debtorcode": {
+										"value": "@pipeline().parameters.debtorcode",
+										"type": "Expression"
+									},
+									"filenametick": {
+										"value": "@pipeline().parameters.filenametick",
+										"type": "Expression"
+									}
+								}
+							}
+						]
+					}
+				],
+				"parameters": {
+					"debtorcode": {
+						"type": "string",
+						"defaultValue": "321197"
+					},
+					"filenametick": {
+						"type": "string",
+						"defaultValue": "637636856972825204"
+					}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/UnmergedStockJSONList')]",
+				"[concat(variables('factoryId'), '/datasets/MergedStockJSON')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/NautaCookDebtorStockCSV')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"linkedService": {
+								"referenceName": "[parameters('NautaDataLakeIR')]",
+								"type": "LinkedServiceReference"
+							},
+							"name": "ProductListPerDebtor"
+						},
+						{
+							"linkedService": {
+								"referenceName": "[parameters('NautaDataLakeIR')]",
+								"type": "LinkedServiceReference"
+							},
+							"name": "MergedStocklistPerDebtor"
+						}
+					],
+					"sinks": [
+						{
+							"linkedService": {
+								"referenceName": "[parameters('NautaDataLakeIR')]",
+								"type": "LinkedServiceReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "Join1"
+						}
+					],
+					"script": "parameters{\n\tdebtorcode as string (\"321197\"),\n\tfilenametick as string (\"637636856972825204\")\n}\nsource(output(\n\t\tcdcollijst as integer,\n\t\tcddeb as integer,\n\t\tcdprodukt as long,\n\t\tcdstandeenhd as string,\n\t\t{omschr-35} as string,\n\t\tcduac as long,\n\t\tDEPRICATED as string,\n\t\tBLOCKED as boolean\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'delimited',\n\tfileSystem: 'csvexport',\n\tfolderPath: (concat(toString($debtorcode),\"/\",toString($filenametick))),\n\tfileName: (\"productsperdebtorcode.csv\"),\n\tcolumnDelimiter: ',',\n\tescapeChar: '\\\\',\n\tquoteChar: '\\\"',\n\tcolumnNamesAsHeader: true) ~> ProductListPerDebtor\nsource(output(\n\t\tavailablestock as short,\n\t\tproductcode as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'json',\n\tfileSystem: 'csvexport',\n\tfolderPath: (concat($debtorcode,\"/\",$filenametick,\"/mergedstockfile\")),\n\tfileName: 'stock.json',\n\tdocumentForm: 'documentPerLine') ~> MergedStocklistPerDebtor\nProductListPerDebtor, MergedStocklistPerDebtor join(toString(cdprodukt) == toString(productcode),\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> Join1\nJoin1 sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'delimited',\n\tfileSystem: 'csvexport',\n\tfolderPath: (concat($debtorcode,\"/\",$filenametick,\"/output\")),\n\ttruncate: true,\n\tcolumnDelimiter: ',',\n\tescapeChar: '\\\\',\n\tquoteChar: '\\\"',\n\tcolumnNamesAsHeader: true,\n\tpartitionFileNames:['productsStockperdebtorcode.csv'],\n\tumask: 0022,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> sink1"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ProductsStockPerDebtorCSVforSFTP')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "[parameters('NautaDataLakeIR')]",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"debtorcode": {
+						"type": "string",
+						"defaultValue": "0"
+					},
+					"filenametick": {
+						"type": "string",
+						"defaultValue": "0"
+					}
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "productsStockperdebtorcode.csv",
+						"folderPath": {
+							"value": "@{dataset().debtorcode}/@{dataset().filenametick}/output",
+							"type": "Expression"
+						},
+						"fileSystem": "csvexport"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SFTPSink')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "[parameters('Sftp1')]",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"BaseURL": {
+							"value": "@dataset().ftpurl",
+							"type": "Expression"
+						},
+						"Username": {
+							"value": "@dataset().ftpuser",
+							"type": "Expression"
+						},
+						"Password": {
+							"value": "@dataset().ftppass",
+							"type": "Expression"
+						}
+					}
+				},
+				"parameters": {
+					"ftpurl": {
+						"type": "string",
+						"defaultValue": "0"
+					},
+					"ftpuser": {
+						"type": "string",
+						"defaultValue": "0"
+					},
+					"ftppass": {
+						"type": "string",
+						"defaultValue": "0"
+					},
+					"ftppath": {
+						"type": "string",
+						"defaultValue": "0"
+					}
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "SftpLocation",
+						"fileName": "testsink.csv",
+						"folderPath": {
+							"value": "@dataset().ftppath",
+							"type": "Expression"
+						}
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ProductsPerDebtorCSVIR')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "[parameters('NautaDataLakeIR')]",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"debtorcode": {
+						"type": "string",
+						"defaultValue": "0"
+					},
+					"filenametick": {
+						"type": "string",
+						"defaultValue": "0"
+					}
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "productsperdebtorcode.csv",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "@{dataset().debtorcode}/@{dataset().filenametick}",
+							"type": "Expression"
+						},
+						"fileSystem": "csvexport"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/UnmergedStockJSONList')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "[parameters('NautaDataLakeIR')]",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileSystem": "csvexport"
+					}
+				},
+				"schema": {}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/MergedStockJSON')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "[parameters('NautaDataLakeIR')]",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"debtorcode": {
+						"type": "string",
+						"defaultValue": "321197"
+					},
+					"filenametick": {
+						"type": "string",
+						"defaultValue": "637636856972825204"
+					}
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "stock.json",
+						"folderPath": {
+							"value": "@{dataset().debtorcode}/@{dataset().filenametick}/mergedstockfile",
+							"type": "Expression"
+						},
+						"fileSystem": "csvexport"
+					}
+				},
+				"schema": {}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/NautaWHStockAPI')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "[parameters('RestService1')]",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "RestResource",
+				"schema": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/StockPerProductPerDebtor')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "[parameters('NautaDataLakeIR')]",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"debtorcode": {
+						"type": "string",
+						"defaultValue": "0"
+					},
+					"filenametick": {
+						"type": "string",
+						"defaultValue": "0"
+					},
+					"productcode": {
+						"type": "string",
+						"defaultValue": "0"
+					}
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@{dataset().productcode}.json",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "@{dataset().debtorcode}/@{dataset().filenametick}/unmergedstockfiles",
+							"type": "Expression"
+						},
+						"fileSystem": "csvexport"
+					}
+				},
+				"schema": {}
+			},
+			"dependsOn": []
+		}
+	]
+}
